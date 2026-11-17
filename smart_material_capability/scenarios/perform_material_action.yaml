@@ -1,0 +1,17 @@
+description: >-
+  Creates, updates, or deletes material master data and creates or updates
+  production orders in S/4HANA. Use when the user wants to change a
+  material's status or gross weight, update or delete a material's
+  description, create a new material master record, create a production
+  order, or change a production order's quantity or planned end date.
+  Example phrasings: "change the status of material TG20 to Z1", "update
+  the gross weight of material TG20 to 12.5 KG", "update the description of
+  material TG20 to 'Trade Item 20'", "create a new material TG99, type
+  FERT, industry sector M, base unit EA", "delete the German description of
+  material TG20", "update production order 1000000 to quantity 50",
+  "change the planned end date of order 1000000 to 2026-12-05", "create a
+  production order for material FG126, plant 1710, order type YBM1,
+  quantity 5".
+target:
+  name: performmaterialaction
+  type: function

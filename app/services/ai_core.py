@@ -1,0 +1,252 @@
+"""SAP AI Core-backed LangChain tool-calling agent, used by the 3 A2A agents
+to handle free-text task input: the model is given the relevant
+core_capabilities functions as tools, decides which (if any) to call based
+on the user's text, executes them, and produces a final natural-language
+answer - all in one call via run_agent().
+
+Structured JSON input (e.g. a Joule Studio skill invocation with
+pre-extracted fields) never goes through this module - agents dispatch
+those directly to core_capabilities, no LLM involved.
+
+Talks to AI Core directly over its OpenAI-compatible deployment endpoint
+(OAuth2 client-credentials token + the AI Core Lifecycle API to resolve the
+deployment's URL and underlying model name), wrapped in a plain
+langchain_openai.ChatOpenAI. Deliberately NOT using generative-ai-hub-sdk's
+LangChain integration: that package mixes a pydantic-v1-era base class into
+langchain-openai's provider classes, which is a hard metaclass conflict
+under any langchain-openai version new enough to also satisfy a2a-sdk's
+pydantic>=2.11.3 requirement - there is no version of generative-ai-hub-sdk
+that satisfies both at once.
+
+Credentials: AICORE_CLIENT_ID / AICORE_CLIENT_SECRET / AICORE_AUTH_URL /
+AICORE_BASE_URL / AICORE_RESOURCE_GROUP, read directly from the process
+environment - app/main.py calls load_dotenv() so .env values reach
+os.environ locally; on Cloud Foundry these are set via `cf set-env`.
+"""
+
+import asyncio
+import json
+import logging
+import os
+import threading
+import time
+from contextlib import asynccontextmanager
+from typing import Any, Callable
+
+import httpx
+
+from app.core.config import get_settings
+from app.services.s4_client import S4ClientError
+
+logger = logging.getLogger(__name__)
+
+_TOKEN_CACHE_TTL_SECONDS = 1800
+# A deployment's URL/model never change while it's running - looking them up
+# on every request added a blocking AI Core round trip per user question.
+_DEPLOYMENT_CACHE_TTL_SECONDS = 3600
+
+_token_lock = threading.Lock()
+_token_cache: tuple[str, float] | None = None
+
+_deployment_lock = threading.Lock()
+_deployment_cache: tuple[str, str, float] | None = None
+
+# Created lazily on first use (inside the running event loop), sized from settings.
+_llm_slots: asyncio.Semaphore | None = None
+
+_BUSY_MESSAGE = (
+    "The system is handling a lot of requests right now. Please try again in a minute."
+)
+
+
+def _fetch_aicore_token() -> str:
+    global _token_cache
+
+    with _token_lock:
+        if _token_cache and _token_cache[1] > time.time():
+            return _token_cache[0]
+
+    resp = httpx.post(
+        os.environ["AICORE_AUTH_URL"],
+        data={"grant_type": "client_credentials"},
+        auth=(os.environ["AICORE_CLIENT_ID"], os.environ["AICORE_CLIENT_SECRET"]),
+        timeout=10,
+    )
+    resp.raise_for_status()
+    token = resp.json()["access_token"]
+
+    with _token_lock:
+        _token_cache = (token, time.time() + _TOKEN_CACHE_TTL_SECONDS)
+    return token
+
+
+def _resolve_deployment(token: str, deployment_id: str) -> tuple[str, str]:
+    """Returns (deployment_url, model_name) for the given AI Core deployment id."""
+    resource_group = os.environ.get("AICORE_RESOURCE_GROUP", "default")
+    resp = httpx.get(
+        f"{os.environ['AICORE_BASE_URL']}/lm/deployments/{deployment_id}",
+        headers={"Authorization": f"Bearer {token}", "AI-Resource-Group": resource_group},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    model_name = data["details"]["resources"]["backendDetails"]["model"]["name"]
+    return data["deploymentUrl"], model_name
+
+
+def _find_deployment_by_model(token: str, model_name: str) -> tuple[str, str]:
+    """Fallback used when LLM_DEPLOYMENT_ID isn't set: finds the first RUNNING
+    deployment serving the given model name."""
+    resource_group = os.environ.get("AICORE_RESOURCE_GROUP", "default")
+    resp = httpx.get(
+        f"{os.environ['AICORE_BASE_URL']}/lm/deployments",
+        params={"status": "RUNNING"},
+        headers={"Authorization": f"Bearer {token}", "AI-Resource-Group": resource_group},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    for deployment in resp.json().get("resources", []):
+        backend_model = deployment.get("details", {}).get("resources", {}).get("backendDetails", {}).get("model", {})
+        if backend_model.get("name") == model_name:
+            return deployment["deploymentUrl"], model_name
+    raise ValueError(f"No running AI Core deployment found serving model '{model_name}'")
+
+
+def _cached_deployment(token: str) -> tuple[str, str]:
+    global _deployment_cache
+
+    with _deployment_lock:
+        if _deployment_cache and _deployment_cache[2] > time.time():
+            return _deployment_cache[0], _deployment_cache[1]
+
+    settings = get_settings()
+    if settings.llm_deployment_id:
+        deployment_url, model_name = _resolve_deployment(token, settings.llm_deployment_id)
+    else:
+        deployment_url, model_name = _find_deployment_by_model(token, settings.ai_core_model_name)
+
+    with _deployment_lock:
+        _deployment_cache = (deployment_url, model_name, time.time() + _DEPLOYMENT_CACHE_TTL_SECONDS)
+    return deployment_url, model_name
+
+
+def _build_llm():
+    """Blocking (token + deployment HTTP calls on a cache miss) - always call
+    via asyncio.to_thread so it never stalls the event loop for other users."""
+    from langchain_openai import ChatOpenAI
+
+    token = _fetch_aicore_token()
+    deployment_url, model_name = _cached_deployment(token)
+
+    resource_group = os.environ.get("AICORE_RESOURCE_GROUP", "default")
+    return ChatOpenAI(
+        model=model_name,
+        base_url=deployment_url,
+        api_key=token,
+        default_headers={"AI-Resource-Group": resource_group},
+        default_query={"api-version": "2023-05-15"},
+        # Retries AI Core 429/5xx/connection errors with backoff, so a brief
+        # throttle under load doesn't surface to the user as a failure.
+        max_retries=3,
+        timeout=60,
+    )
+
+
+def _get_llm_slots() -> asyncio.Semaphore:
+    global _llm_slots
+    if _llm_slots is None:
+        _llm_slots = asyncio.Semaphore(get_settings().agent_max_concurrency)
+    return _llm_slots
+
+
+async def run_agent(
+    system_prompt: str, tools: list[Callable[..., Any]], user_text: str
+) -> tuple[str, list[Any]] | None:
+    """Runs one tool-calling turn; returns (answer_text, tool_outputs).
+    Returns None only if AI Core is disabled; on failure, returns the real
+    error as the answer text instead of a generic message.
+
+    At most agent_max_concurrency runs are in flight per worker; the rest
+    wait for a slot. Without this, a burst of users fires every LLM call at
+    AI Core at once and they all get rate-limited together. A request that
+    can't get a slot within agent_queue_timeout_seconds gets a polite "busy"
+    reply rather than hanging until the caller (e.g. Joule) times out."""
+    if not get_settings().ai_core_enabled:
+        return None
+
+    try:
+        async with _llm_slot():
+            return await _run_agent_turn(system_prompt, tools, user_text)
+    except AgentBusyError:
+        return _BUSY_MESSAGE, []
+
+
+class AgentBusyError(Exception):
+    """No LLM slot freed up within agent_queue_timeout_seconds."""
+
+    user_message = _BUSY_MESSAGE
+
+
+@asynccontextmanager
+async def _llm_slot():
+    settings = get_settings()
+    slots = _get_llm_slots()
+    try:
+        await asyncio.wait_for(slots.acquire(), timeout=settings.agent_queue_timeout_seconds)
+    except asyncio.TimeoutError:
+        logger.warning("AI Core agent queue full - rejected a request after %ss", settings.agent_queue_timeout_seconds)
+        raise AgentBusyError from None
+    try:
+        yield
+    finally:
+        slots.release()
+
+
+async def classify(system_prompt: str, user_text: str) -> str | None:
+    """One plain LLM call (no tools) that answers with a single label, e.g.
+    the Assistant Agent picking which agent should answer. Shares the same
+    concurrency slots as run_agent. Returns the lower-cased first word of the
+    answer, or None if AI Core is disabled or the call fails; raises
+    AgentBusyError when no slot frees up in time."""
+    if not get_settings().ai_core_enabled:
+        return None
+    async with _llm_slot():
+        try:
+            llm = await asyncio.to_thread(_build_llm)
+            reply = await llm.ainvoke([("system", system_prompt), ("user", user_text)])
+        except Exception:
+            logger.exception("AI Core classification call failed")
+            return None
+    words = str(reply.content).strip().lower().split()
+    return words[0].strip(".,:;'\"`") if words else None
+
+
+async def _run_agent_turn(
+    system_prompt: str, tools: list[Callable[..., Any]], user_text: str
+) -> tuple[str, list[Any]]:
+    from langchain.agents import create_agent
+    from langchain_core.messages import ToolMessage
+
+    try:
+        llm = await asyncio.to_thread(_build_llm)
+        agent = create_agent(llm, tools=tools, system_prompt=system_prompt)
+        result = await agent.ainvoke({"messages": [{"role": "user", "content": user_text}]})
+        messages = result["messages"]
+        final_text = messages[-1].content
+
+        tool_outputs = []
+        for message in messages:
+            if isinstance(message, ToolMessage):
+                try:
+                    tool_outputs.append(json.loads(message.content))
+                except (json.JSONDecodeError, TypeError):
+                    tool_outputs.append(message.content)
+
+        return final_text, tool_outputs
+    except S4ClientError as exc:
+        # A tool's S/4 call failed, not AI Core itself - logged distinctly.
+        logger.exception("AI Core agent's tool call failed against S/4HANA")
+        return f"S/4HANA error: {exc}", []
+    except Exception as exc:
+        logger.exception("AI Core agent execution failed (LLM call, tool-calling loop, or unexpected error)")
+        return f"AI Core error: {type(exc).__name__}: {exc}", []

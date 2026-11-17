@@ -1,0 +1,15 @@
+description: >-
+  Generates a downloadable report of material or production order data from
+  S/4HANA in PDF, Excel, or CSV format. Use when the user asks to export,
+  generate, or download a report of material master data, material stock,
+  serial numbers, or production orders. Every message that starts with
+  "Generate a ... report" belongs here - including the texts sent by the
+  CSV / Excel / PDF report buttons. Example phrasings: "Generate a
+  production order report at plant 1710 in Excel format", "Generate a
+  material stock report for TG20 in CSV format", "Generate a material
+  master report for MZ-FG-R300 in PDF format", "generate a PDF stock report
+  for plant 1010", "export material master data for MAT-1000 and MAT-2000
+  to Excel", "give me a CSV of production orders for plant 1010".
+target:
+  name: generatematerialreport
+  type: function

@@ -1,0 +1,27 @@
+applications:
+  - name: smart-material-ai
+    # 2 worker processes, each loading LangChain/openpyxl/reportlab - 256M
+    # left no headroom even for one under load. 2 workers means one crashing
+    # or busy process doesn't take the whole app down; reports are stored on
+    # local disk, which both workers share, so download links work from either.
+    # --limit-concurrency caps open connections per worker: past it, new
+    # requests get an immediate 503 instead of piling up until memory runs out.
+    memory: 1G
+    buildpacks:
+      - python_buildpack
+    command: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2 --limit-concurrency 100 --timeout-keep-alive 30
+    env:
+      S4_DESTINATION_NAME: S43
+      AI_CORE_ENABLED: true
+      AI_CORE_MODEL_NAME: gpt-4o
+      LLM_DEPLOYMENT_ID: d38dd2015862a15d
+      AICORE_RESOURCE_GROUP: default
+      AICORE_AUTH_URL: https://gen-ai.authentication.us10.hana.ondemand.com/oauth/token
+      AICORE_BASE_URL: https://api.ai.prod.us-east-1.aws.ml.hana.ondemand.com/v2
+      AICORE_CLIENT_ID: "sb-42a29a03-b2f4-47de-9a41-e0936be9aaf5!b256749|aicore!b164"
+      AICORE_CLIENT_SECRET: "b5e6caee-15aa-493a-a6ac-1fef0ab6e9fe$Satg7UGYPLsz5YYeXefHpbwTfEqqCkQEbasMDPGHAgU="
+      APP_PUBLIC_URL: https://smart-material-ai.cfapps.us10-001.hana.ondemand.com
+
+    services:
+      - smart-material-ai-destination
+      - smart-material-ai-connectivity
