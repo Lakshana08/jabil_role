@@ -5,6 +5,10 @@ and updates production orders (T-code CO01/CO02) via the Production Order
 API (API_PRODUCTION_ORDER_2_SRV - entity A_ProductionOrder_2) - see
 perform_production_order_action below.
 
+Writes stay on these standard APIs on purpose: all READS moved to the Smart
+Material CDS views (OData V4 service ZSD_SMC_MATERIAL, see _s4_apis.py), but
+that service is read-only - it has no create/update operations to call.
+
 Two real, confirmed targets (checked live against API_PRODUCT_SRV, 2026-07-08):
 
 - "update_status" -> PATCH A_Product('<material>') - CrossPlantStatus lives

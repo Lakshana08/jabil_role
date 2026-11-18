@@ -1,6 +1,6 @@
-"""Report capability: build a downloadable report from any of the four
-S/4 query sources (material master / material stock / production order /
-material serial number).
+"""Report capability: build a downloadable report (PDF/Excel/CSV) from any
+data source in _s4_apis.py - the Smart Material CDS views (OData V4 service
+ZSD_SMC_MATERIAL) - with the same filters / conditions / sort as a query.
 
 A report is where a large result is meant to end up in full, so rows are
 fetched page by page ($top/$skip) until S/4's own total is reached - a
@@ -10,9 +10,8 @@ request from exhausting the app's memory; hitting it is reported, never
 silent.
 """
 
-from app.core_capabilities._s4_apis import BY_NAME
-from app.core_capabilities.query import flatten_stock_rows
-from app.services.odata_utils import extract_count, extract_rows, odata_literal
+from app.core_capabilities._s4_apis import get_source, normalize_filters
+from app.services.odata_utils import extract_count, extract_rows
 from app.services.report_builder import PDF_MAX_ROWS, get_report_builder
 from app.services.s4_client import get_s4_client
 
@@ -25,18 +24,36 @@ def generate_material_report(
     identifiers: list[str] | None = None,
     plant: str | None = None,
     report_format: str = "pdf",
+    filters: dict | None = None,
+    conditions: list[str] | None = None,
+    order_by: str | None = None,
 ) -> dict:
-    if report_type not in BY_NAME:
-        raise ValueError(f"Unknown report_type '{report_type}', expected one of {sorted(BY_NAME)}")
+    """identifiers / plant are the older inputs, still accepted: identifiers
+    scope the source's main key (material or order), plant adds a plant filter
+    where the source has one."""
+    source = get_source(report_type)
+    filters = normalize_filters(filters)
+    if identifiers:
+        filters.setdefault(source.key_filter, ",".join(str(i) for i in identifiers))
+    if plant and "plant" in source.filters:
+        filters.setdefault("plant", plant)
 
-    rows, truncated = _fetch_report_rows(report_type, identifiers, plant)
+    params: dict = {}
+    odata_filter = source.build_filter(filters, conditions)
+    if odata_filter:
+        params["$filter"] = odata_filter
+    odata_orderby = source.build_orderby(order_by)
+    if odata_orderby:
+        params["$orderby"] = odata_orderby
 
-    result = get_report_builder().build(rows, report_format, base_filename=f"{report_type}_report")
+    rows, truncated = _fetch_all_pages(source.path, params)
+
+    result = get_report_builder().build(rows, report_format, base_filename=f"{source.name}_report")
     notes = []
     if truncated:
         notes.append(
             f"The data has more than {REPORT_MAX_ROWS:,} rows - the report contains the first "
-            f"{REPORT_MAX_ROWS:,}. Narrow it by material/product/order or plant to get the rest."
+            f"{REPORT_MAX_ROWS:,}. Narrow it with a filter to get the rest."
         )
     if result["rows_in_file"] < len(rows):
         notes.append(
@@ -49,7 +66,10 @@ def generate_material_report(
         "row_count": len(rows),
         "rows_in_file": result["rows_in_file"],
         "truncated": truncated,
-        "report_type": report_type,
+        "report_type": source.name,
+        "label": source.label,
+        "filters": filters,
+        "conditions": list(conditions or []),
         **({"note": " ".join(notes)} if notes else {}),
     }
 
@@ -60,7 +80,7 @@ def _fetch_all_pages(path: str, params: dict) -> tuple[list[dict], bool]:
     rows: list[dict] = []
     skip = 0
     while True:
-        page_params = {**params, "$top": REPORT_PAGE_SIZE, "$skip": skip, "$inlinecount": "allpages"}
+        page_params = {**params, "$top": REPORT_PAGE_SIZE, "$skip": skip, "$count": "true"}
         data = get_s4_client().get(path, params=page_params)
         page = extract_rows(data)
         rows.extend(page)
@@ -76,33 +96,3 @@ def _fetch_all_pages(path: str, params: dict) -> tuple[list[dict], bool]:
             return rows, False
         if len(rows) >= REPORT_MAX_ROWS:
             return rows[:REPORT_MAX_ROWS], True
-
-
-def _fetch_report_rows(
-    report_type: str, identifiers: list[str] | None, plant: str | None
-) -> tuple[list[dict], bool]:
-    api = BY_NAME[report_type]
-
-    if report_type == "material_stock":
-        # Same treatment as query_material_stock(): Plant isn't a top-level
-        # filter field on A_MaterialStock, so expand the nested association
-        # and flatten into real line-item rows instead. Paging applies to the
-        # parent records; the cap is re-checked on the flattened line items.
-        params = {"$expand": "to_MatlStkInAcctMod"}
-        if identifiers:
-            params["$filter"] = " or ".join(f"Material eq '{odata_literal(i)}'" for i in identifiers)
-        parents, truncated = _fetch_all_pages(api.path, params)
-        rows = flatten_stock_rows(parents, plant)
-        if len(rows) > REPORT_MAX_ROWS:
-            return rows[:REPORT_MAX_ROWS], True
-        return rows, truncated
-
-    filters = []
-    if identifiers:
-        filters.append(
-            " or ".join(f"{api.key_field} eq '{odata_literal(identifier)}'" for identifier in identifiers)
-        )
-    if plant and api.has_plant_field:
-        filters.append(f"Plant eq '{odata_literal(plant)}'")
-    params = {"$filter": " and ".join(f"({f})" for f in filters)} if filters else {}
-    return _fetch_all_pages(api.path, params)

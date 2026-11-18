@@ -13,8 +13,8 @@ again afterwards.
 
 Examples (from the project root):
 
-  # 1. Local, no AI Core / S/4 needed - Status Agent on the Excel data
-  .venv\\Scripts\\python.exe tools\\load_test.py --agent status --structured --users 50 --requests 500
+  # 1. Local, structured (no AI Core) - Query Agent count via S/4
+  .venv\\Scripts\\python.exe tools\\load_test.py --agent query --structured --users 50 --requests 500
 
   # 2. Local, real free-text path through AI Core + S/4
   .venv\\Scripts\\python.exe tools\\load_test.py --agent query --users 10 --requests 30 \\
@@ -22,7 +22,7 @@ Examples (from the project root):
 
   # 3. Deployed app
   .venv\\Scripts\\python.exe tools\\load_test.py --url https://smart-material-ai.cfapps.us10-001.hana.ondemand.com \\
-      --agent status --structured --users 20 --requests 100
+      --agent query --structured --users 20 --requests 100
 """
 
 import argparse
@@ -40,13 +40,11 @@ import httpx
 
 DEFAULT_QUESTIONS = {
     "query": ["How many production orders are there?", "How many product masters are there in total?"],
-    "status": ["Show aged inventory", "Any over-control materials today?", "Show non-controlled material"],
     "report": ["Give me a CSV of production orders for plant 1010"],
     "action": [],  # deliberately empty - load-testing writes would change real S/4 data
 }
 
 DEFAULT_STRUCTURED = {
-    "status": [{"check_type": "aging"}, {"check_type": "over_control"}, {"check_type": "non_controlled"}],
     "query": [{"query_type": "production_order", "count_only": True}],
 }
 
@@ -146,7 +144,7 @@ async def main() -> None:
     # 127.0.0.1, not "localhost": on Windows localhost resolves to IPv6 ::1
     # first, while uvicorn listens on IPv4 127.0.0.1 only.
     parser.add_argument("--url", default="http://127.0.0.1:8000", help="App base URL")
-    parser.add_argument("--agent", default="status", choices=sorted(DEFAULT_QUESTIONS))
+    parser.add_argument("--agent", default="query", choices=sorted(DEFAULT_QUESTIONS))
     parser.add_argument("--users", type=int, default=20, help="Requests in flight at the same time")
     parser.add_argument("--requests", type=int, default=100, help="Total requests to send")
     parser.add_argument("--question", action="append", help="Free-text question (repeatable)")

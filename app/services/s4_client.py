@@ -6,16 +6,20 @@ thread-safe: a pooled requests.Session (connections reused instead of a new
 TCP/TLS handshake per call), automatic retry with backoff on transient S/4
 errors for reads only, and a lock around the shared CSRF token."""
 
+import logging
 import threading
 from http.cookiejar import DefaultCookiePolicy
 from typing import Any
 
 import requests
+import urllib3
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from app.core.config import get_settings
 from app.services.destination import DestinationService, ResolvedDestination, get_destination_service
+
+logger = logging.getLogger(__name__)
 
 
 class S4ClientError(Exception):
@@ -78,12 +82,19 @@ class S4Client:
         resolved = self._resolve()
         kwargs = self._base_kwargs(resolved)
         kwargs["headers"]["Accept"] = "application/json"
-        # This system's SAP Gateway returns XML unless $format=json is
-        # passed explicitly as a query param, not just via the Accept header.
-        merged_params = {"$format": "json", **(params or {})}
+        merged_params = {**self._format_params(path), **self._client_params(resolved), **(params or {})}
         resp = self._session.get(self._url(resolved, path), params=merged_params, **kwargs)
         self._raise_for_odata_error(resp)
         return resp.json()
+
+    def get_text(self, path: str, accept: str = "application/xml") -> str:
+        """Raw-text GET - used for a service's $metadata document (XML)."""
+        resolved = self._resolve()
+        kwargs = self._base_kwargs(resolved)
+        kwargs["headers"]["Accept"] = accept
+        resp = self._session.get(self._url(resolved, path), params=self._client_params(resolved), **kwargs)
+        self._raise_for_odata_error(resp)
+        return resp.text
 
     def post(self, path: str, json_body: dict | None = None) -> dict:
         return self._mutate("POST", path, json_body)
@@ -106,7 +117,8 @@ class S4Client:
         resolved = self._resolve()
         kwargs = self._base_kwargs(resolved)
         kwargs["headers"]["Accept"] = "application/json"
-        resp = self._session.get(self._url(resolved, path), params={"$format": "json"}, **kwargs)
+        params = {**self._format_params(path), **self._client_params(resolved)}
+        resp = self._session.get(self._url(resolved, path), params=params, **kwargs)
         self._raise_for_odata_error(resp)
         entity = resp.json().get("d", {})
         etag = resp.headers.get("ETag") or entity.get("__metadata", {}).get("etag")
@@ -124,7 +136,9 @@ class S4Client:
             if extra_headers:
                 kwargs["headers"].update(extra_headers)
             kwargs["cookies"] = cookies
-            return self._session.request(method, self._url(resolved, path), json=json_body, **kwargs)
+            return self._session.request(
+                method, self._url(resolved, path), params=self._client_params(resolved), json=json_body, **kwargs
+            )
 
         resp = attempt(csrf)
         # SAP Gateway's actual signal for a rejected/expired CSRF token is the
@@ -160,7 +174,9 @@ class S4Client:
         # service path, not the bare host root - GETting resolved.url alone
         # 404s since there's no service mounted there.
         entity_set_path = path.split("(", 1)[0]
-        resp = self._session.get(self._url(resolved, entity_set_path), **kwargs)
+        resp = self._session.get(
+            self._url(resolved, entity_set_path), params=self._client_params(resolved), **kwargs
+        )
         resp.raise_for_status()
         return resp.headers.get("X-CSRF-Token"), resp.cookies
 
@@ -172,6 +188,17 @@ class S4Client:
         return f"{resolved.url.rstrip('/')}/{path.lstrip('/')}"
 
     @staticmethod
+    def _format_params(path: str) -> dict:
+        """OData v2 only: this system's SAP Gateway returns XML for v2 unless
+        $format=json is passed as a query param, not just via the Accept header.
+        OData v4 (/sap/opu/odata4/...) answers JSON by default."""
+        return {} if "/odata4/" in path else {"$format": "json"}
+
+    @staticmethod
+    def _client_params(resolved: ResolvedDestination) -> dict:
+        return {"sap-client": resolved.sap_client} if resolved.sap_client else {}
+
+    @staticmethod
     def _base_kwargs(resolved: ResolvedDestination) -> dict:
         auth = None
         if resolved.authentication == "BasicAuthentication":
@@ -181,6 +208,7 @@ class S4Client:
             "headers": dict(resolved.extra_headers),
             "auth": auth,
             "timeout": 30,
+            "verify": get_settings().s4_verify_ssl,
         }
 
     @staticmethod
@@ -192,6 +220,11 @@ class S4Client:
                 detail = resp.text
             raise S4ClientError(resp.status_code, detail)
 
+
+if not get_settings().s4_verify_ssl:
+    # One startup warning instead of urllib3's InsecureRequestWarning on every single call.
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    logger.warning("S4_VERIFY_SSL is false - S/4 TLS certificates are NOT verified. Dev systems only.")
 
 _client = S4Client(get_destination_service(), get_settings().s4_destination_name)
 

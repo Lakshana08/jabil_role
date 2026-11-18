@@ -240,23 +240,6 @@
   .nav-trend.trend-up{color:var(--chip-coral-ink);}
   .nav-trend.trend-down{color:var(--chip-teal-ink);}
 
-  .scope-filter{
-    display:flex; flex-direction:column; gap:6px;
-    padding:0 8px 14px; margin-bottom:6px;
-    border-bottom:1px solid var(--line-soft);
-  }
-  .scope-filter label{
-    font-size:9.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-    color:var(--ink-faint); margin-bottom:-2px;
-  }
-  .scope-select{
-    width:100%; font-size:12px; font-weight:600; color:var(--ink);
-    background:var(--surface-2); border:1px solid var(--line);
-    border-radius:8px; padding:6px 8px;
-    font-family:inherit; cursor:pointer;
-  }
-  .scope-select:focus{outline:none; border-color:var(--grad-b);}
-
   .expand-sidebar{
     display:none;
     position:absolute; left:12px; top:12px; z-index:10;
@@ -339,7 +322,7 @@
 
   .panels{
     display:grid;
-    grid-template-columns:1fr 1.3fr;
+    grid-template-columns:1fr 1fr;
     gap:16px;
   }
   @media (max-width:820px){ .panels{grid-template-columns:1fr;} }
@@ -598,97 +581,32 @@
         Collapse
       </button>
 
-      <div class="scope-filter">
-        <label for="scope-plant">Plant</label>
-        <select class="scope-select" id="scope-plant"><option value="">All plants</option></select>
-        <label for="scope-storage">Storage Location</label>
-        <select class="scope-select" id="scope-storage"><option value="">All locations</option></select>
-        <label for="scope-material-group">Material Group</label>
-        <select class="scope-select" id="scope-material-group"><option value="">All groups</option></select>
-      </div>
-
       <div class="nav-group">
-        <div class="nav-label">Overview</div>
-        <a class="nav-item" href="#overview">
-          <span class="nav-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
-          Summary
+        <div class="nav-label">Ask about</div>
+        <a class="nav-item" href="#panel-inventory">
+          <span class="nav-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg></span>
+          Inventory & Aging
         </a>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-label">Inventory Health</div>
-        <a class="nav-item" href="#kpi-over-control">
-          <span class="nav-icon coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></span>
-          Over-Control
-          <span class="nav-badge" data-badge="over_control">68</span>
+        <a class="nav-item" href="#panel-control">
+          <span class="nav-icon coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          Material Control
         </a>
-        <a class="nav-item" href="#kpi-blocked">
-          <span class="nav-icon coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-          Blocked Stock
-          <span class="nav-badge" data-badge="blocked_stock">0</span>
+        <a class="nav-item" href="#panel-production">
+          <span class="nav-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span>
+          Production & Shortage
         </a>
-        <a class="nav-item" href="#kpi-aging">
-          <span class="nav-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
-          Aging
-          <span class="nav-badge" data-badge="aging">499</span>
+        <a class="nav-item" href="#panel-master">
+          <span class="nav-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+          Material Master
         </a>
-        <a class="nav-item" href="#kpi-non-controlled">
-          <span class="nav-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-          Non-Controlled
-          <span class="nav-badge" data-badge="non_controlled">1,678</span>
+        <a class="nav-item" href="#panel-report">
+          <span class="nav-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg></span>
+          Report
         </a>
-        <a class="nav-item" href="#kpi-material">
-          <span class="nav-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
-          Material
-          <span class="nav-badge" data-badge="total_material">2,644</span>
+        <a class="nav-item" href="#panel-action">
+          <span class="nav-icon coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+          Action
         </a>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-label">Production Status</div>
-        <a class="nav-item" href="#kpi-exceptions">
-          <span class="nav-icon coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
-          Exception Orders
-          <span class="nav-badge" data-badge="exception_orders">11</span>
-        </a>
-        <span class="nav-item disabled" title="Needs a defined completion/progress rule before this can show a real number">
-          <span class="nav-icon muted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
-          Order Execution
-        </span>
-        <span class="nav-item disabled" title="Needs a defined capacity/load rule before this can show a real number">
-          <span class="nav-icon muted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11"/></svg></span>
-          Work Center Load
-        </span>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-label">Material Usage</div>
-        <a class="nav-item" href="#panel-attention">
-          <span class="nav-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-          Shortage
-        </a>
-        <a class="nav-item" href="#panel-machine-head">
-          <span class="nav-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8 12 14.7 8.7 11.4 3 17"/></svg></span>
-          Machine-Head
-          <span class="nav-badge" data-badge="machine_head">0</span>
-        </a>
-        <span class="nav-item disabled" title="Needs a defined theoretical-vs-actual variance threshold before this can show a real number">
-          <span class="nav-icon muted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg></span>
-          Usage Variance
-        </span>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-label">Data Quality</div>
-        <a class="nav-item" href="#kpi-missing">
-          <span class="nav-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
-          Missing Data
-          <span class="nav-badge" data-badge="missing_data">0</span>
-        </a>
-        <span class="nav-item disabled" title="Needs a defined compliance rule before this can show a real number">
-          <span class="nav-icon muted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 6v6c0 5 3.8 8.5 9 10 5.2-1.5 9-5 9-10V6z"/></svg></span>
-          Rule Compliance
-        </span>
       </div>
 
       <div class="nav-group">
@@ -700,116 +618,223 @@
     <main>
      <div class="content-col">
       <div class="hero" id="overview">
-        <h1>Material shortage, aging &amp; over-control at a glance</h1>
-        <p>Checks material control status, inventory aging, and machine-head material review candidates
-           using deterministic business rules, not live guesswork: non-controlled material has no linked
-           production-order requirement, over-control means unrestricted stock exceeds the controlled
-           allowance, and aging flags stock untouched for more than 14 days.</p>
-      </div>
-
-      <div class="section-head" id="insights">
-        <h2>Insights</h2>
-        <p>Non-controlled, over-control, aging, and machine-head status, computed from the sources above.</p>
-      </div>
-      <div class="kpi-row">
-        <div class="kpi-card" id="kpi-material">
-          <div class="kpi-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
-          <div class="kpi-label">Total material records</div>
-          <div class="kpi-value" data-metric="total_material">2,644</div>
-          <div class="kpi-note">Z_AGEDINV, current snapshot</div>
-        </div>
-        <div class="kpi-card" id="kpi-non-controlled">
-          <div class="kpi-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
-          <div class="kpi-label">Non-controlled material</div>
-          <div class="kpi-value teal" data-metric="non_controlled">1,678</div>
-          <div class="kpi-note">No linked production-order requirement</div>
-        </div>
-        <div class="kpi-card" id="kpi-over-control">
-          <div class="kpi-icon coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-          <div class="kpi-label">Over-control material</div>
-          <div class="kpi-value coral" data-metric="over_control">68</div>
-          <div class="kpi-note">Exceeds controlled allowance</div>
-        </div>
-        <div class="kpi-card" id="kpi-aging">
-          <div class="kpi-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-          <div class="kpi-label">Aged inventory (&gt;14 days)</div>
-          <div class="kpi-value amber" data-metric="aging">499</div>
-          <div class="kpi-note">of 2,644 tracked records</div>
-        </div>
-      </div>
-
-      <div class="kpi-row">
-        <div class="kpi-card" id="kpi-blocked">
-          <div class="kpi-icon coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-          <div class="kpi-label">Blocked stock</div>
-          <div class="kpi-value coral" data-metric="blocked_stock">0</div>
-          <div class="kpi-note">Blocked &gt; 0 in current scope</div>
-        </div>
-        <div class="kpi-card" id="kpi-exceptions">
-          <div class="kpi-icon coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></div>
-          <div class="kpi-label">Exception orders</div>
-          <div class="kpi-value coral" data-metric="exception_orders">11</div>
-          <div class="kpi-note">Flagged for exclusion (order status)</div>
-        </div>
-        <div class="kpi-card" id="kpi-missing">
-          <div class="kpi-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-          <div class="kpi-label">Missing data</div>
-          <div class="kpi-value amber" data-metric="missing_data">0</div>
-          <div class="kpi-note">Aging value not recorded</div>
-        </div>
+        <h1>Smart Material data from live S/4HANA</h1>
+        <p>Every answer comes straight from the Smart Material CDS views: aged inventory, over-control and
+           non-controlled material, work-order components and 14C issuance, production orders and shortages,
+           and material master data. Click a question to ask it, or open the assistant and ask your own -
+           any result can be downloaded as a CSV, Excel or PDF report.</p>
       </div>
 
       <div class="panels" id="panels">
-        <div class="panel" id="panel-machine-head">
+        <div class="panel" id="panel-inventory">
           <div class="panel-head">
-            <h3>Machine-Head Review</h3>
-            <p>ZNPC orders with prior GI history, flagged for human review only — never auto-resolved.</p>
+            <h3>Inventory &amp; Aging</h3>
+            <p>Stock, stock value and aging from Z_AGEDINV, Inventory and MaterialStock.</p>
           </div>
           <div class="panel-body">
-            <div class="empty-panel"><span class="ok-dot"></span>No machine-head candidates in the current dataset.</div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Show the 10 oldest aged materials</div>
+              <div class="attn-meta">Sheet1_Data</div>
+              <button class="discuss-btn" data-agent="query" data-q="Show the 10 oldest aged materials">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">How many materials have been aging for more than 90 days?</div>
+              <div class="attn-meta">Sheet1_Data</div>
+              <button class="discuss-btn" data-agent="query" data-q="How many materials have been aging for more than 90 days?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Show aged stock in storage location A201 older than 30 days</div>
+              <div class="attn-meta">Sheet1_Data</div>
+              <button class="discuss-btn" data-agent="query" data-q="Show aged stock in storage location A201 older than 30 days">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">What&#x27;s the stock for material ACEP23701?</div>
+              <div class="attn-meta">MaterialStock</div>
+              <button class="discuss-btn" data-agent="query" data-q="What&#x27;s the stock for material ACEP23701?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Which materials have the highest unrestricted stock value?</div>
+              <div class="attn-meta">Sheet1_Data</div>
+              <button class="discuss-btn" data-agent="query" data-q="Which materials have the highest unrestricted stock value?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Show putaway-pending materials in storage location A340</div>
+              <div class="attn-meta">Sheet5_PutawayPending</div>
+              <button class="discuss-btn" data-agent="query" data-q="Show putaway-pending materials in storage location A340">Ask in chat →</button>
+            </div></div>
           </div>
         </div>
 
-        <div class="panel" id="panel-attention">
+        <div class="panel" id="panel-control">
           <div class="panel-head">
-            <h3>Materials Needing Attention</h3>
-            <p>Highest-aging and over-control records from the current snapshot.</p>
+            <h3>Material Control</h3>
+            <p>Over-control, non-controlled and issuable material from Z_AGEDINV and 14C.</p>
           </div>
           <div class="panel-body">
-            <div class="attn-item">
-              <div>
-                <div class="attn-mat">PKLYR05066</div>
-                <div class="attn-meta">Storage P201 · Plant CN16</div>
-                <button class="discuss-btn" data-agent="status" data-q="How long has material PKLYR05066 been aging in storage location P201?">Discuss in chat →</button>
-              </div>
-              <span class="attn-badge">326 days</span>
-            </div>
-            <div class="attn-item">
-              <div>
-                <div class="attn-mat">ATNR90681</div>
-                <div class="attn-meta">Storage A301 · Plant CN16</div>
-                <button class="discuss-btn" data-agent="status" data-q="How long has material ATNR90681 been aging in storage location A301?">Discuss in chat →</button>
-              </div>
-              <span class="attn-badge">320 days</span>
-            </div>
-            <div class="attn-item">
-              <div>
-                <div class="attn-mat">PNINK99174</div>
-                <div class="attn-meta">Storage P301 · Plant CN16</div>
-                <button class="discuss-btn" data-agent="status" data-q="How long has material PNINK99174 been aging in storage location P301?">Discuss in chat →</button>
-              </div>
-              <span class="attn-badge">320 days</span>
-            </div>
-            <div class="attn-item">
-              <div>
-                <div class="attn-mat">ACPE21667</div>
-                <div class="attn-meta">Storage M401 · over-control by 0.81 units</div>
-                <button class="discuss-btn" data-agent="status" data-q="Is material ACPE21667 in storage location M401 over-control?">Discuss in chat →</button>
-              </div>
-              <span class="attn-badge oc">Over-control</span>
-            </div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Any over-issued materials in storage location A301?</div>
+              <div class="attn-meta">Sheet4_OverControl</div>
+              <button class="discuss-btn" data-agent="query" data-q="Any over-issued materials in storage location A301?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">How many over-control materials are there?</div>
+              <div class="attn-meta">Sheet4_OverControl</div>
+              <button class="discuss-btn" data-agent="query" data-q="How many over-control materials are there?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">How many non-controlled materials are there?</div>
+              <div class="attn-meta">Sheet3_WIPIssuable</div>
+              <button class="discuss-btn" data-agent="query" data-q="How many non-controlled materials are there?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">What is the available-to-issue quantity for material ACPE21670?</div>
+              <div class="attn-meta">Sheet3_WIPIssuable</div>
+              <button class="discuss-btn" data-agent="query" data-q="What is the available-to-issue quantity for material ACPE21670?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Show machine-head material needing review</div>
+              <div class="attn-meta">ComponentShortage</div>
+              <button class="discuss-btn" data-agent="query" data-q="Show machine-head material needing review">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Show the 14C need vs stock for material ACPE21680</div>
+              <div class="attn-meta">MOD14C_Sheet1</div>
+              <button class="discuss-btn" data-agent="query" data-q="Show the 14C need vs stock for material ACPE21680">Ask in chat →</button>
+            </div></div>
           </div>
         </div>
+
+        <div class="panel" id="panel-production">
+          <div class="panel-head">
+            <h3>Production &amp; Shortage</h3>
+            <p>Production orders, components, operations, statuses, COOIS and shortages.</p>
+          </div>
+          <div class="panel-body">
+            <div class="attn-item"><div>
+              <div class="attn-mat">Which work orders have missing parts?</div>
+              <div class="attn-meta">WorkOrderShortage</div>
+              <button class="discuss-btn" data-agent="query" data-q="Which work orders have missing parts?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">What&#x27;s short for production order 121060001?</div>
+              <div class="attn-meta">ComponentShortage</div>
+              <button class="discuss-btn" data-agent="query" data-q="What&#x27;s short for production order 121060001?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Which components need expediting from the warehouse?</div>
+              <div class="attn-meta">ComponentShortage</div>
+              <button class="discuss-btn" data-agent="query" data-q="Which components need expediting from the warehouse?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Show production order 121060001</div>
+              <div class="attn-meta">ProductionOrder</div>
+              <button class="discuss-btn" data-agent="query" data-q="Show production order 121060001">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">What statuses does production order 121060001 have?</div>
+              <div class="attn-meta">ProductionOrderStatus</div>
+              <button class="discuss-btn" data-agent="query" data-q="What statuses does production order 121060001 have?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Which orders are excluded with NMVT status?</div>
+              <div class="attn-meta">COOIS_OrderStatus</div>
+              <button class="discuss-btn" data-agent="query" data-q="Which orders are excluded with NMVT status?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Show the 14C component issuance for order 120921757</div>
+              <div class="attn-meta">MOD14C_Data</div>
+              <button class="discuss-btn" data-agent="query" data-q="Show the 14C component issuance for order 120921757">Ask in chat →</button>
+            </div></div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-master">
+          <div class="panel-head">
+            <h3>Material Master</h3>
+            <p>Material master, plant (MRP), valuation, storage location and BOM data.</p>
+          </div>
+          <div class="panel-body">
+            <div class="attn-item"><div>
+              <div class="attn-mat">Show material master data for ACEP23701</div>
+              <div class="attn-meta">MaterialMaster</div>
+              <button class="discuss-btn" data-agent="query" data-q="Show material master data for ACEP23701">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">What&#x27;s the standard price of material ACFM21404?</div>
+              <div class="attn-meta">MaterialValuation</div>
+              <button class="discuss-btn" data-agent="query" data-q="What&#x27;s the standard price of material ACFM21404?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Show MRP data for material ACFM21404 in plant CN16</div>
+              <div class="attn-meta">MaterialPlant</div>
+              <button class="discuss-btn" data-agent="query" data-q="Show MRP data for material ACFM21404 in plant CN16">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Which storage locations is material ACEP23701 set up in?</div>
+              <div class="attn-meta">MaterialStorageLocation</div>
+              <button class="discuss-btn" data-agent="query" data-q="Which storage locations is material ACEP23701 set up in?">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Show the BOM of material PBC2731181A0B</div>
+              <div class="attn-meta">MaterialBOMItem</div>
+              <button class="discuss-btn" data-agent="query" data-q="Show the BOM of material PBC2731181A0B">Ask in chat →</button>
+            </div></div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-report">
+          <div class="panel-head">
+            <h3>Report</h3>
+            <p>Download any of this data as CSV, Excel or PDF - all matching rows.</p>
+          </div>
+          <div class="panel-body">
+            <div class="attn-item"><div>
+              <div class="attn-mat">Generate an over-control material report in storage location A301 in Excel format</div>
+              <div class="attn-meta">Sheet4_OverControl</div>
+              <button class="discuss-btn" data-agent="report" data-q="Generate an over-control material report in storage location A301 in Excel format">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Generate an aged inventory report where AgingDays &gt; 90 in CSV format</div>
+              <div class="attn-meta">Sheet1_Data</div>
+              <button class="discuss-btn" data-agent="report" data-q="Generate an aged inventory report where AgingDays &gt; 90 in CSV format">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Generate a component shortage report for order 121060001 in PDF format</div>
+              <div class="attn-meta">ComponentShortage</div>
+              <button class="discuss-btn" data-agent="report" data-q="Generate a component shortage report for order 121060001 in PDF format">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Generate a work order shortage report with status Missing parts in Excel format</div>
+              <div class="attn-meta">WorkOrderShortage</div>
+              <button class="discuss-btn" data-agent="report" data-q="Generate a work order shortage report with status Missing parts in Excel format">Ask in chat →</button>
+            </div></div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-action">
+          <div class="panel-head">
+            <h3>Action</h3>
+            <p>Change material masters and production orders - always confirmed before anything is saved.</p>
+          </div>
+          <div class="panel-body">
+            <div class="attn-item"><div>
+              <div class="attn-mat">Update the gross weight of material ACEP23701 to 0.05 KG</div>
+              <div class="attn-meta">MM02</div>
+              <button class="discuss-btn" data-agent="action" data-q="Update the gross weight of material ACEP23701 to 0.05 KG">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Change the English description of material ACEP23701 to EPE cloth 390x290x0.5mm</div>
+              <div class="attn-meta">MM02</div>
+              <button class="discuss-btn" data-agent="action" data-q="Change the English description of material ACEP23701 to EPE cloth 390x290x0.5mm">Ask in chat →</button>
+            </div></div>
+            <div class="attn-item"><div>
+              <div class="attn-mat">Update the quantity of production order 121060001 to 8000</div>
+              <div class="attn-meta">CO02</div>
+              <button class="discuss-btn" data-agent="action" data-q="Update the quantity of production order 121060001 to 8000">Ask in chat →</button>
+            </div></div>
+          </div>
+        </div>
+
       </div>
      </div>
     </main>
@@ -827,7 +852,7 @@
         </div>
         <div class="chat-head-text">
           <div class="chat-head-title">Smart Material Assistant</div>
-          <div class="chat-head-sub" id="chat-agent-sub">Talking to Status Agent</div>
+          <div class="chat-head-sub" id="chat-agent-sub">Talking to Query Agent</div>
           <div class="chat-account" id="chat-account" hidden></div>
         </div>
         <a class="chat-open-link" href="https://gen-ai.us10.sapdas.cloud.sap/webclient/standalone/smart_material_test" target="_blank" rel="noopener">Open Joule ↗</a>
@@ -836,10 +861,9 @@
         </button>
       </div>
       <div class="agent-tabs" id="agent-tabs">
-        <div class="agent-tab" data-agent="query">Query</div>
+        <div class="agent-tab active" data-agent="query">Query</div>
         <div class="agent-tab" data-agent="action">Action</div>
         <div class="agent-tab" data-agent="report">Report</div>
-        <div class="agent-tab active" data-agent="status">Status</div>
       </div>
     </div>
 
@@ -852,11 +876,11 @@
           </svg>
         </div>
         <h4>How can I help?</h4>
-        <p>Ask anything about material status, or try one of these</p>
+        <p>Ask about stock, aging, over-control, production orders or shortages, or try one of these</p>
         <div class="prompt-pills">
-          <button class="suggestion-chip" data-q="Any over-control materials in storage location S201?">Any over-control materials in storage location S201?</button>
-          <button class="suggestion-chip" data-q="Show aged inventory for storage location A301">Show aged inventory for storage location A301</button>
-          <button class="suggestion-chip" data-q="Show machine-head material needing review">Show machine-head material needing review</button>
+          <button class="suggestion-chip" data-q="Any over-issued materials in storage location A301?">Any over-issued materials in storage location A301?</button>
+          <button class="suggestion-chip" data-q="Which work orders have missing parts?">Which work orders have missing parts?</button>
+          <button class="suggestion-chip" data-q="Show the 10 oldest aged materials">Show the 10 oldest aged materials</button>
         </div>
       </div>
     </div>
@@ -894,8 +918,8 @@
     localStorage.setItem("theme", next);
   }
 
-  const AGENT_LABELS = { query: "Query Agent", action: "Action Agent", report: "Report Agent", status: "Status Agent" };
-  let currentAgent = "status";
+  const AGENT_LABELS = { query: "Query Agent", action: "Action Agent", report: "Report Agent" };
+  let currentAgent = "query";
 
   const ORB_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c.6 3.2 1.2 5.6 2.4 6.8S17.8 11.4 21 12c-3.2.6-5.6 1.2-6.8 2.4S12.6 17.8 12 21c-.6-3.2-1.2-5.6-2.4-6.8S6.2 12.6 3 12c3.2-.6 5.6-1.2 6.8-2.4S11.4 6.2 12 3z"/></svg>';
 
@@ -913,67 +937,6 @@
     sidebar.classList.toggle("collapsed");
     expandBtn.classList.toggle("show", sidebar.classList.contains("collapsed"));
   }
-
-  // ---- Scope filter (Plant / Storage Location / Material Group) - real
-  // options and a real recompute on change, not a decorative dropdown.
-  // Exception Orders and Machine-Head aren't scoped: COOIS and PP-134 don't
-  // carry Plant/Storage Location/Material Group, so filtering them would
-  // mean fabricating a relationship that isn't in the source data. ----
-  const scopePlant = document.getElementById("scope-plant");
-  const scopeStorage = document.getElementById("scope-storage");
-  const scopeMaterialGroup = document.getElementById("scope-material-group");
-
-  function fillSelect(select, values) {
-    for (const v of values) {
-      const opt = document.createElement("option");
-      opt.value = v;
-      opt.textContent = v;
-      select.appendChild(opt);
-    }
-  }
-
-  async function loadScopeOptions() {
-    try {
-      const resp = await fetch("/api/dashboard/scope-options");
-      const data = await resp.json();
-      fillSelect(scopePlant, data.plants || []);
-      fillSelect(scopeStorage, data.storage_locations || []);
-      fillSelect(scopeMaterialGroup, data.material_groups || []);
-    } catch (err) {
-      console.error("Couldn't load scope filter options:", err);
-    }
-  }
-
-  async function refreshDashboardSummary() {
-    const params = new URLSearchParams();
-    if (scopePlant.value) params.set("plant", scopePlant.value);
-    if (scopeStorage.value) params.set("storage_location", scopeStorage.value);
-    if (scopeMaterialGroup.value) params.set("material_group", scopeMaterialGroup.value);
-
-    try {
-      const resp = await fetch("/api/dashboard/summary?" + params.toString());
-      const summary = await resp.json();
-      const formatted = {};
-      for (const [key, value] of Object.entries(summary)) {
-        formatted[key] = value.toLocaleString();
-      }
-      document.querySelectorAll("[data-badge]").forEach(el => {
-        const key = el.dataset.badge;
-        if (key in formatted) el.textContent = formatted[key];
-      });
-      document.querySelectorAll("[data-metric]").forEach(el => {
-        const key = el.dataset.metric;
-        if (key in formatted) el.textContent = formatted[key];
-      });
-    } catch (err) {
-      console.error("Couldn't refresh dashboard summary:", err);
-    }
-  }
-
-  [scopePlant, scopeStorage, scopeMaterialGroup].forEach(select => {
-    select.addEventListener("change", refreshDashboardSummary);
-  });
-  loadScopeOptions();
 
   // ---- Web sign-in (IAS). When the agents are protected, the chat needs a
   // signed-in user: /auth/me says who that is, the session cookie travels with
@@ -1040,7 +1003,8 @@
   });
 
   document.querySelectorAll(".suggestion-chip").forEach(chip => {
-    chip.addEventListener("click", () => { chatInput.value = chip.dataset.q; sendChat(); });
+    // The chips are data questions - always the Query Agent, whichever tab is open.
+    chip.addEventListener("click", () => { setAgent("query"); chatInput.value = chip.dataset.q; sendChat(); });
   });
 
   document.querySelectorAll(".discuss-btn").forEach(btn => {
@@ -1086,34 +1050,21 @@
     return null;
   }
 
-  // Query Agent result shapes don't carry an explicit "query_type" field
-  // (except the count_records tool) - report_type is inferred from which
-  // identifier keys are present, matching query.py's 4 result shapes.
+  // Every Query Agent result names its data source (query_type) and the
+  // filters / conditions / sort it used - the Report Agent takes exactly
+  // these, so the report holds all rows of the same selection. Only results
+  // with rows get a report button (no "report of nothing").
   function extractReportParams(dataObj) {
     if (!dataObj) return null;
-    let obj = dataObj;
-    if (Array.isArray(dataObj.tool_results)) {
-      obj = dataObj.tool_results.find(r => r && typeof r === "object" &&
-        ("query_type" in r || "product" in r || "production_order" in r || "serial_number" in r || "material" in r));
-    }
-    if (!obj || typeof obj !== "object") return null;
-
-    if ("query_type" in obj) return { report_type: obj.query_type, identifiers: null, plant: null };
-    if ("product" in obj) return { report_type: "material_master", identifiers: obj.product ? [obj.product] : null, plant: null };
-    if ("production_order" in obj) {
-      return {
-        report_type: "production_order",
-        identifiers: obj.production_order ? [obj.production_order] : (obj.material ? [obj.material] : null),
-        plant: obj.plant || null,
-      };
-    }
-    if ("serial_number" in obj) {
-      return { report_type: "material_serial_number", identifiers: obj.material ? [obj.material] : null, plant: obj.plant || null };
-    }
-    if ("material" in obj) {
-      return { report_type: "material_stock", identifiers: obj.material ? [obj.material] : null, plant: obj.plant || null };
-    }
-    return null;
+    const candidates = Array.isArray(dataObj.tool_results) ? dataObj.tool_results : [dataObj];
+    const obj = candidates.find(r => r && typeof r === "object" && r.query_type && !r.error && (r.count || 0) > 0);
+    if (!obj) return null;
+    return {
+      report_type: obj.query_type,
+      filters: obj.filters || {},
+      conditions: obj.conditions || [],
+      order_by: obj.order_by || null,
+    };
   }
 
   async function generateReportFromQuery(reportParams, btn, formatSelect) {
@@ -1133,8 +1084,9 @@
           role: "ROLE_USER",
           parts: [{ data: {
             report_type: reportParams.report_type,
-            identifiers: reportParams.identifiers,
-            plant: reportParams.plant,
+            filters: reportParams.filters,
+            conditions: reportParams.conditions,
+            order_by: reportParams.order_by,
             report_format: reportFormat,
           } }],
         },
@@ -1201,8 +1153,8 @@
       col.appendChild(link);
     }
 
-    // Query Agent answers carry the same query_type/identifiers the Report
-    // Agent accepts as report_type/identifiers - offer a one-click way to
+    // Query Agent answers carry the same query_type/filters the Report
+    // Agent accepts as report_type/filters - offer a one-click way to
     // turn a query result into a downloadable report instead of having to
     // re-ask the same thing over in the Report Agent tab.
     if (role === "assistant" && sourceAgent === "query" && !downloadUrl) {

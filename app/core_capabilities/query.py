@@ -1,180 +1,79 @@
-"""Query capability: read-only S/4HANA lookups - MM03 (material master),
-MMBE (stock, and serialized stock), COOIS (production order info)."""
+"""Query capability: read-only lookups against any data source in _s4_apis.py
+(the Smart Material CDS views, OData V4 service ZSD_SMC_MATERIAL) - with
+simple filters, free conditions and a sort, paged server-side."""
 
-from app.core_capabilities._s4_apis import (
-    BY_NAME,
-    MATERIAL_SERIAL_NUMBER,
-    MATERIAL_STOCK,
-    PRODUCTION_ORDER,
-    PRODUCT_MASTER,
-)
-from app.core_capabilities.paging import page_meta, page_slice
-from app.services.odata_utils import extract_count, extract_rows, odata_literal, strip_odata_noise
+from app.core_capabilities._s4_apis import get_source, normalize_filters
+from app.core_capabilities.paging import page_meta
+from app.services.odata_utils import extract_count, extract_rows
 from app.services.s4_client import get_s4_client
 
 # Max rows any one call fetches from S/4 (the page size `top` is clamped to
-# this). Without it, a broad filter (e.g. "production orders in plant 1710"
-# with no order/material narrowing) can pull back thousands of rows straight
-# into the LLM's tool-result message and blow the model's context window
-# (seen live: 525k tokens on one COOIS fetch). Callers page through larger
-# results with skip - $inlinecount=allpages returns the true total in the
-# same request, so every page knows how many rows exist in all.
+# this). Without it, a broad request can pull thousands of rows straight into
+# the LLM's tool-result message and blow the model's context window (seen
+# live: 525k tokens on one COOIS fetch). Callers page through larger results
+# with skip - $count=true returns the true total in the same request.
 QUERY_ROW_LIMIT = 200
 
 
 def _clamp_top(top: int) -> int:
-    return max(1, min(top, QUERY_ROW_LIMIT))
+    return max(1, min(int(top), QUERY_ROW_LIMIT))
 
 
-def _page_params(skip: int, top: int) -> dict:
-    return {"$top": _clamp_top(top), "$skip": max(0, skip), "$inlinecount": "allpages"}
+def _params(source_name: str, filters: dict | None, conditions: list[str] | None, order_by: str | None) -> tuple:
+    source = get_source(source_name)
+    params: dict = {}
+    odata_filter = source.build_filter(filters, conditions)
+    if odata_filter:
+        params["$filter"] = odata_filter
+    odata_orderby = source.build_orderby(order_by)
+    if odata_orderby:
+        params["$orderby"] = odata_orderby
+    return source, params
 
 
-def _paged(data: dict, rows: list[dict], skip: int) -> dict:
+def query_source(
+    source_name: str,
+    filters: dict | None = None,
+    conditions: list[str] | None = None,
+    order_by: str | None = None,
+    skip: int = 0,
+    top: int = QUERY_ROW_LIMIT,
+) -> dict:
+    """One page of rows from a data source. count is the true total matching
+    the filters; has_more says whether rows exist beyond this page."""
+    source, params = _params(source_name, filters, conditions, order_by)
+    skip = max(0, int(skip or 0))
+    params.update({"$top": _clamp_top(top), "$skip": skip, "$count": "true"})
+    data = get_s4_client().get(source.path, params=params)
+    rows = extract_rows(data)[: _clamp_top(top)]
     total = extract_count(data)
     if total is None:
-        # No inline count returned - all we can vouch for is this page's rows.
-        total = max(0, skip) + len(rows)
-    return page_meta(total, max(0, skip), len(rows))
-
-
-def query_material_master(product: str) -> dict:
-    """MM03 - material/product master data. Descriptions live on the
-    related A_ProductDescription entity, reached via to_Description and
-    flattened into a plain "descriptions" list here. Filtered on the key, so
-    at most one row - no paging needed."""
-    data = get_s4_client().get(
-        PRODUCT_MASTER.path,
-        params={
-            "$filter": f"Product eq '{odata_literal(product)}'",
-            "$expand": "to_Description",
-            **_page_params(0, QUERY_ROW_LIMIT),
-        },
-    )
-    rows = extract_rows(data)[:QUERY_ROW_LIMIT]
-    for row in rows:
-        row["descriptions"] = _clean_nested(row.pop("to_Description", None))
-    return {"product": product, "results": rows, **_paged(data, rows, 0)}
-
-
-def _clean_nested(nested) -> list[dict]:
-    """Normalizes an expanded OData v2 nav property into a plain, cleaned list."""
-    if isinstance(nested, dict):
-        nested = nested.get("results", [])
-    if not isinstance(nested, list):
-        return []
-    return [strip_odata_noise(entry) for entry in nested]
-
-
-def query_material_stock(
-    material: str, plant: str | None = None, skip: int = 0, top: int = QUERY_ROW_LIMIT
-) -> dict:
-    """MMBE - stock overview, optionally scoped to a plant. Plant isn't a
-    top-level $filter field, so results are flattened and filtered client-side.
-
-    $skip/$top can't page here: they apply to the A_MaterialStock parent
-    records (one per material), not the plant/storage-location line items
-    nested under them. So the line items are flattened first and the page is
-    cut from that list - count is the true number of line items."""
-    params = {
-        "$filter": f"Material eq '{odata_literal(material)}'",
-        "$expand": "to_MatlStkInAcctMod",
-        "$top": QUERY_ROW_LIMIT,
-    }
-    data = get_s4_client().get(MATERIAL_STOCK.path, params=params)
-    all_rows = flatten_stock_rows(extract_rows(data)[:QUERY_ROW_LIMIT], plant)
-    rows, meta = page_slice(all_rows, skip, _clamp_top(top))
-    return {"material": material, "plant": plant, "results": rows, **meta}
-
-
-def flatten_stock_rows(rows: list[dict], plant: str | None = None) -> list[dict]:
-    """Flattens A_MaterialStock rows into one row per plant/storage-location
-    line item, optionally filtered to a plant. Shared with report.py."""
-    flattened = []
-    for row in rows:
-        nested = row.get("to_MatlStkInAcctMod")
-        if isinstance(nested, dict):
-            nested = nested.get("results", [])
-        if not isinstance(nested, list):
-            continue
-        for entry in nested:
-            if plant and entry.get("Plant") != plant:
-                continue
-            # entry comes from the raw expanded sub-collection, not through
-            # extract_rows(), so it still carries __metadata/__deferred noise.
-            flattened.append(strip_odata_noise({"Material": row.get("Material"), **entry}))
-    return flattened
-
-
-def query_production_order(
-    production_order: str | None = None,
-    material: str | None = None,
-    plant: str | None = None,
-    skip: int = 0,
-    top: int = QUERY_ROW_LIMIT,
-) -> dict:
-    """COOIS - production order info, filterable by order/material/plant.
-    Paged server-side with $skip/$top."""
-    filters = []
-    if production_order:
-        filters.append(f"ManufacturingOrder eq '{odata_literal(production_order)}'")
-    if material:
-        filters.append(f"Material eq '{odata_literal(material)}'")
-    if plant:
-        filters.append(f"Plant eq '{odata_literal(plant)}'")
-    params = _page_params(skip, top)
-    if filters:
-        params["$filter"] = " and ".join(filters)
-    data = get_s4_client().get(PRODUCTION_ORDER.path, params=params)
-    rows = extract_rows(data)[: _clamp_top(top)]
+        total = skip + len(rows)
     return {
-        "production_order": production_order,
-        "material": material,
-        "plant": plant,
+        "query_type": source.name,
+        "label": source.label,
+        "filters": normalize_filters(filters),
+        "conditions": list(conditions or []),
+        "order_by": order_by or None,
         "results": rows,
-        **_paged(data, rows, skip),
+        **page_meta(total, skip, len(rows)),
     }
 
 
-def query_material_serial_numbers(
-    material: str,
-    plant: str | None = None,
-    serial_number: str | None = None,
-    skip: int = 0,
-    top: int = QUERY_ROW_LIMIT,
-) -> dict:
-    """MMBE (serialized stock) - stock broken down by serial number/equipment.
-    Paged server-side with $skip/$top."""
-    filters = [f"Material eq '{odata_literal(material)}'"]
-    if plant:
-        filters.append(f"Plant eq '{odata_literal(plant)}'")
-    if serial_number:
-        filters.append(f"SerialNumber eq '{odata_literal(serial_number)}'")
-    params = {"$filter": " and ".join(filters), **_page_params(skip, top)}
-    data = get_s4_client().get(MATERIAL_SERIAL_NUMBER.path, params=params)
-    rows = extract_rows(data)[: _clamp_top(top)]
-    return {
-        "material": material,
-        "plant": plant,
-        "serial_number": serial_number,
-        "results": rows,
-        **_paged(data, rows, skip),
-    }
-
-
-def count_all_records(query_type: str) -> dict:
-    """Total record count for a query source, with no filter at all - answers
-    "how many X are there in total" for any of the 4 sources. Uses
-    $inlinecount=allpages with $top=1 so S/4 computes the real total without
-    this actually pulling back the full dataset."""
-    if query_type not in BY_NAME:
-        raise ValueError(f"Unknown query_type '{query_type}', expected one of {sorted(BY_NAME)}")
-    api = BY_NAME[query_type]
-    data = get_s4_client().get(api.path, params={"$top": 1, "$inlinecount": "allpages"})
+def count_records(source_name: str, filters: dict | None = None, conditions: list[str] | None = None) -> dict:
+    """How many rows of a data source match - the real S/4 total ($count with
+    $top=1), without pulling the rows back."""
+    source, params = _params(source_name, filters, conditions, None)
+    params.update({"$top": 1, "$count": "true"})
+    data = get_s4_client().get(source.path, params=params)
     count = extract_count(data)
     if count is None:
-        # Server didn't return an inline count (shouldn't happen given
-        # $inlinecount=allpages, but fall back to counting returned rows
-        # rather than reporting an unknown total).
         count = len(extract_rows(data))
-    return {"query_type": query_type, "count": count}
+    return {
+        "query_type": source.name,
+        "label": source.label,
+        "filters": normalize_filters(filters),
+        "conditions": list(conditions or []),
+        "count_only": True,
+        "count": count,
+    }

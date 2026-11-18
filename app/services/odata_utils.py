@@ -63,13 +63,14 @@ def extract_count(data: dict[str, Any]) -> int | None:
 
 
 def strip_odata_noise(row: dict[str, Any]) -> dict[str, Any]:
-    """Strips SAP's `__metadata` and unexpanded `__deferred` nav-property
-    stubs, leaving only real business fields."""
+    """Strips OData v2's `__metadata` and unexpanded `__deferred` nav-property
+    stubs, and OData v4 control annotations (`@odata.etag`, `@odata.context`,
+    `Field@...`), leaving only real business fields."""
     if not isinstance(row, dict):
         return row
     cleaned = {}
     for key, value in row.items():
-        if key == "__metadata":
+        if key == "__metadata" or "@" in key:
             continue
         if isinstance(value, dict) and "__deferred" in value:
             continue

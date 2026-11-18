@@ -5,11 +5,10 @@ metadata:
   version: 1.0.12
   display_name: Smart Material AI
   description: >-
-    Query material master data, stock levels, and production orders;
-    create, update, and delete material master fields; generate
-    downloadable material/production order reports in S/4HANA; and check
-    material control status, inventory aging, and machine-head material
-    review candidates, via A2A agents.
+    Query the Smart Material CDS views in S/4HANA - material master, stock,
+    aged inventory, over-control, production orders and shortages; create
+    and update material masters and production orders; and generate
+    downloadable reports of any of this data, via A2A agents.
 
 system_aliases:
   SMART_MATERIAL_QUERY:
@@ -18,8 +17,6 @@ system_aliases:
     destination: SMART_MATERIAL_ACTION
   SMART_MATERIAL_REPORT:
     destination: SMART_MATERIAL_REPORT
-  SMART_MATERIAL_STATUS:
-    destination: SMART_MATERIAL_STATUS
 
 
 

@@ -28,8 +28,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOCAL_PORT = 8020
 BODY = {"jsonrpc": "2.0", "id": "1", "method": "message/send", "params": {"message": {
     "role": "user", "messageId": "", "kind": "message",
-    # Status agent on the Excel data: answers without S/4 or AI Core
-    "parts": [{"kind": "data", "data": {"check_type": "aging", "limit": 1}}]}}}
+    # Query agent with no product given: answers "I need a 'product'" without S/4 or AI Core
+    "parts": [{"kind": "data", "data": {"query_type": "material_master"}}]}}}
 
 
 def start_local_app(tenant: str, client_id: str, required_api: str) -> subprocess.Popen:
@@ -51,7 +51,7 @@ def start_local_app(tenant: str, client_id: str, required_api: str) -> subproces
 def call(base: str, label: str, token: str | None, expect: int) -> bool:
     BODY["params"]["message"]["messageId"] = str(uuid.uuid4())
     headers = {"Authorization": f"Bearer {token}"} if token else {}
-    r = httpx.post(f"{base}/a2a/status/", json=BODY, headers=headers, timeout=60)
+    r = httpx.post(f"{base}/a2a/query/", json=BODY, headers=headers, timeout=60)
     detail = r.json().get("detail") if r.status_code != 200 else "agent answered"
     ok = r.status_code == expect
     print(f"  {'PASS' if ok else 'FAIL'}  {label:46} HTTP {r.status_code}  {detail}")
@@ -95,7 +95,7 @@ def main() -> None:
         proc = start_local_app(tenant, args.client_id, args.required_api)
         base = f"http://127.0.0.1:{LOCAL_PORT}"
     try:
-        card = httpx.get(f"{base}/a2a/status/.well-known/agent-card.json", timeout=10).status_code
+        card = httpx.get(f"{base}/a2a/query/.well-known/agent-card.json", timeout=10).status_code
         results = [card == 200]
         print(f"  {'PASS' if card == 200 else 'FAIL'}  {'agent card (public, for discovery)':46} HTTP {card}")
         results.append(call(base, "stranger: no token", None, 401))

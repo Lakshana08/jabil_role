@@ -14,6 +14,20 @@ class Settings(BaseSettings):
     s4_username: str = ""
     s4_password: str = ""
 
+    # SAP logon client sent as ?sap-client= on every S/4 call. Empty = use the
+    # destination's own "sap-client" property, or the system's default client.
+    s4_sap_client: str = ""
+
+    # TLS certificate check for S/4 calls. Set false only for a dev system with
+    # a self-signed certificate (e.g. direct-connect to the HTTPS port 44300).
+    s4_verify_ssl: bool = True
+
+    # The custom OData V4 service publishing the Smart Material CDS views
+    # (service binding ZSB_SMC_MATERIAL / service definition ZSD_SMC_MATERIAL).
+    # Every read in the Query and Report capabilities goes to an entity set
+    # under this path - see app/core_capabilities/_s4_apis.py.
+    s4_smc_service_path: str = "/sap/opu/odata4/sap/zsb_smc_material/srvd_a2x/sap/zsd_smc_material/0001"
+
     # Base URL this app is reachable at - used in AgentCard URLs and report links.
     app_public_url: str = "http://localhost:8000"
 
