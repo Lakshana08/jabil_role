@@ -26,6 +26,7 @@ class ResolvedDestination:
     proxy_port: int | None = None
     proxy_authorization: str | None = None
     location_id: str | None = None  # Cloud Connector Location ID (destination's CloudConnectorLocationId)
+    sap_client: str | None = None  # sent as ?sap-client= on every call when set
 
     @property
     def requests_proxies(self) -> dict[str, str] | None:
@@ -82,6 +83,7 @@ class DestinationService:
             authentication="BasicAuthentication" if username else "NoAuthentication",
             username=username or None,
             password=password or None,
+            sap_client=settings.s4_sap_client or None,
         )
 
     def _resolve_live(self, destination_name: str) -> ResolvedDestination:
@@ -118,6 +120,8 @@ class DestinationService:
             username=dest_config.get("User"),
             password=dest_config.get("Password"),
             location_id=dest_config.get("CloudConnectorLocationId") or None,
+            # S4_SAP_CLIENT wins over the destination's own "sap-client" property.
+            sap_client=get_settings().s4_sap_client or dest_config.get("sap-client") or None,
         )
 
         if resolved.proxy_type == "OnPremise":

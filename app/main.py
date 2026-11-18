@@ -1,8 +1,7 @@
 # Run: .venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
-"""FastAPI entrypoint that hosts four independent A2A agents - querying,
-acting on, and reporting on live S/4HANA material data, plus evaluating
-business-rule status against sample_data/ - plus a plain REST route for
-downloading generated report files.
+"""FastAPI entrypoint that hosts three independent A2A agents - querying,
+acting on, and reporting on live S/4HANA material data - plus the assistant
+router and a plain REST route for downloading generated report files.
 
 Each agent is a separate A2A server (its own AgentCard/discovery endpoint,
 its own JSON-RPC endpoint) mounted at its own path prefix within this one
@@ -11,11 +10,10 @@ deployable app:
   /a2a/query   -> Material Query Agent   -> /.well-known/agent-card.json, /
   /a2a/action  -> Material Action Agent  -> /.well-known/agent-card.json, /
   /a2a/report  -> Material Report Agent  -> /.well-known/agent-card.json, /
-  /a2a/status  -> Status Agent           -> /.well-known/agent-card.json, /
   /a2a/assistant -> Smart Material Assistant (router + confirm-before-change, used by teams_bot/)
 
 so a caller (e.g. a Joule Studio A2A code-based agent registration) sees
-four distinct agents at
+distinct agents at
 http://<host>/a2a/query/.well-known/agent-card.json, etc.
 """
 
@@ -46,18 +44,15 @@ from app.a2a_agents.assistant_agent import AssistantAgentExecutor, build_assista
 from app.a2a_agents.common import BoundedTaskStore
 from app.a2a_agents.query_agent import QueryAgentExecutor, build_query_agent_card
 from app.a2a_agents.report_agent import ReportAgentExecutor, build_report_agent_card
-from app.a2a_agents.status_agent import StatusAgentExecutor, build_status_agent_card
 from app.core.config import get_settings
 from app.core.ias_auth import ias_auth_middleware
 from app.core.web_login import router as web_login_router
 from app.routers.reports import router as reports_router
-from frontend import dashboard as dashboard_capability
 
 _AGENTS = {
     "query": (build_query_agent_card, QueryAgentExecutor),
     "action": (build_action_agent_card, ActionAgentExecutor),
     "report": (build_report_agent_card, ReportAgentExecutor),
-    "status": (build_status_agent_card, StatusAgentExecutor),
     # Router for chat channels without routing of their own (Teams bot); changes need confirmation.
     "assistant": (build_assistant_agent_card, AssistantAgentExecutor),
 }
@@ -138,17 +133,6 @@ def create_app() -> FastAPI:
     def health() -> dict:
         return {"status": "ok"}
 
-    # Plain REST, not A2A - backs the dashboard sidebar's scope filter
-    # (Plant / Storage Location / Material Group) with real, re-computed
-    # counts rather than a decorative dropdown that doesn't do anything.
-    @app.get("/api/dashboard/summary")
-    def dashboard_summary(plant: str | None = None, storage_location: str | None = None, material_group: str | None = None) -> dict:
-        return dashboard_capability.get_summary(plant=plant, storage_location=storage_location, material_group=material_group)
-
-    @app.get("/api/dashboard/scope-options")
-    def dashboard_scope_options() -> dict:
-        return dashboard_capability.get_scope_options()
-
     app.include_router(reports_router)
     # IAS sign-in for the web page's chat (/auth/login, /auth/callback, /auth/me, /auth/logout).
     app.include_router(web_login_router)
@@ -166,7 +150,7 @@ def create_app() -> FastAPI:
 
     # Frontend UI (frontend/public/index.html), kept in its own top-level
     # folder separate from the agent code in app/ - only frontend/public/ is
-    # mounted (not all of frontend/), so frontend/dashboard.py's source isn't
+    # mounted (not all of frontend/), so nothing else in that folder is
     # served as a static file. Registered last: Starlette matches mounts in
     # registration order, and a root-path Mount registered earlier would
     # swallow /health, /a2a/*, etc.

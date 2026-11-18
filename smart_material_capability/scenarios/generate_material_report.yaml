@@ -1,15 +1,17 @@
 description: >-
-  Generates a downloadable report of material or production order data from
-  S/4HANA in PDF, Excel, or CSV format. Use when the user asks to export,
-  generate, or download a report of material master data, material stock,
-  serial numbers, or production orders. Every message that starts with
-  "Generate a ... report" belongs here - including the texts sent by the
-  CSV / Excel / PDF report buttons. Example phrasings: "Generate a
-  production order report at plant 1710 in Excel format", "Generate a
-  material stock report for TG20 in CSV format", "Generate a material
-  master report for MZ-FG-R300 in PDF format", "generate a PDF stock report
-  for plant 1010", "export material master data for MAT-1000 and MAT-2000
-  to Excel", "give me a CSV of production orders for plant 1010".
+  Generates a downloadable PDF, Excel or CSV report of any Smart Material data
+  in S/4HANA: material master, MRP / valuation / BOM data, stock, inventory,
+  aged inventory, over-control / over-issued, non-controlled and issuable
+  material, putaway-pending and -S materials, work-order components, 14C
+  issuance, order status, production orders (components, operations, statuses),
+  work-order and component shortages. Use when the user asks to export,
+  generate or download a report or file. Every message that starts with
+  "Generate a ... report" belongs here - including the texts sent by the CSV /
+  Excel / PDF report buttons. Example phrasings: "Generate an over-control
+  material report in storage location A301 in Excel format", "Generate an aged
+  inventory report where AgingDays > 90 in CSV format", "give me a PDF of
+  component shortages for order 121060001", "export the work orders with
+  missing parts to Excel".
 target:
   name: generatematerialreport
   type: function

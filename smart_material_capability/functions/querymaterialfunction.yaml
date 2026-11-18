@@ -36,13 +36,13 @@ action_groups:
             buttons:
               - type: postback
                 title: CSV
-                value: "<? agentResult.body.status.message.parts.size() > 1 ? agentResult.body.status.message.parts[1].data.tool_results[0].report_prompt_csv : 'Generate a report in CSV format' ?>"
+                value: "<? agentResult.body.status.message.parts.size() > 1 ? agentResult.body.status.message.parts[1].data.report_prompt_csv : 'Generate a report in CSV format' ?>"
               - type: postback
                 title: Excel
-                value: "<? agentResult.body.status.message.parts.size() > 1 ? agentResult.body.status.message.parts[1].data.tool_results[0].report_prompt_excel : 'Generate a report in Excel format' ?>"
+                value: "<? agentResult.body.status.message.parts.size() > 1 ? agentResult.body.status.message.parts[1].data.report_prompt_excel : 'Generate a report in Excel format' ?>"
               - type: postback
                 title: PDF
-                value: "<? agentResult.body.status.message.parts.size() > 1 ? agentResult.body.status.message.parts[1].data.tool_results[0].report_prompt_pdf : 'Generate a report in PDF format' ?>"
+                value: "<? agentResult.body.status.message.parts.size() > 1 ? agentResult.body.status.message.parts[1].data.report_prompt_pdf : 'Generate a report in PDF format' ?>"
   # "Show next 20" for large results. Its own action group, so if this
   # condition ever misbehaves the answer + report buttons above are already
   # shown. next_page_prompt is lifted to the data part's top level by the

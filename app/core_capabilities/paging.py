@@ -19,7 +19,7 @@ def page_meta(total: int, skip: int, returned: int) -> dict:
 
 
 def page_slice(rows: list[dict], skip: int, top: int) -> tuple[list[dict], dict]:
-    """Pages an already-materialized list (Excel engine results, flattened stock rows)."""
+    """Pages an already-materialized list."""
     skip = max(0, skip)
     page = rows[skip : skip + top]
     return page, page_meta(len(rows), skip, len(page))

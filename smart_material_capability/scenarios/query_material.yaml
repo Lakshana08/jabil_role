@@ -1,17 +1,20 @@
 description: >-
-  Looks up material master data, stock levels, serial numbers and production
-  orders in S/4HANA. Use when the user asks about the stock for a material,
-  material master details, a production order, production orders for a
-  plant or material, or how many material masters, stock records,
-  production orders or serial numbers exist in total. NOT for inventory
-  aging, non-controlled or over-control/over-issued status, or machine-head
-  review - those are the material status check. Also NOT for generating,
-  exporting or downloading a report or file (CSV, Excel, PDF): any "Generate
-  a ... report ..." message belongs to the report scenario, even when it
-  names a production order, material or plant. Example phrasings: "what's
-  the stock for material MAT-1000?", "show me production order 60001234",
-  "show production orders for plant 1710", "how many production orders are
-  there in total?".
+  Looks up and counts S/4HANA material and production data from the Smart
+  Material CDS views: material master, MRP / valuation / storage location /
+  BOM data, stock and inventory value, aged inventory (aging days), over-control
+  / over-issued, non-controlled and available-to-issue material, putaway-pending
+  and -S (dummy) materials, work-order components, 14C component issuance,
+  COOIS / NMVT order status, production orders with their components,
+  operations and statuses, machine-head material, and work orders with missing
+  parts or component shortages. Use for any question about this data, including
+  "how many ..." and "next rows" follow-ups ("..., rows 21-40"). NOT for
+  generating, exporting or downloading a report or file (CSV, Excel, PDF): any
+  "Generate a ... report ..." message belongs to the report scenario. NOT for
+  creating or changing SAP data. Example phrasings: "any over-issued materials
+  in storage location A301?", "show the 10 oldest aged materials", "which work
+  orders have missing parts?", "what's short for production order 121060001?",
+  "how many non-controlled materials are there?", "show the BOM of material
+  PBC2731181A0B", "which orders are excluded with NMVT status?".
 target:
   name: querymaterialfunction
   type: function
