@@ -29,8 +29,8 @@ from app.services.odata_utils import humanize_odata_dates
 from app.services.s4_client import S4ClientError
 
 SKILL = AgentSkill(
-    id="query_material",
-    name="Query Material",
+    id="material_planner",
+    name="Material Planner",
     description=(
         "Looks up S/4HANA data from the Smart Material CDS views: material master, plant / valuation / "
         "storage location / BOM data, stock and inventory value, aged inventory, WIP issuable, "
@@ -41,7 +41,7 @@ SKILL = AgentSkill(
         "(material, plant, storage_location, order, component, status, ...), conditions "
         "(e.g. ['AgingDays > 90']), order_by, skip, and count_only: true for a total count."
     ),
-    tags=["s4hana", "material", "production-order", "inventory", "shortage", "query"],
+    tags=["s4hana", "material", "production-order", "inventory", "shortage", "planner"],
     examples=[
         "Any over-issued materials in storage location A301?",
         "Which work orders have missing parts?",
@@ -127,7 +127,7 @@ _TOOLS = [query_data, count_data]
 
 _FILTER_HELP = "\n".join(f"- {name}: {meaning}" for name, meaning in FILTER_NAMES.items())
 
-_AGENT_SYSTEM_PROMPT = f"""You answer questions about the company's S/4HANA material and production data \
+_AGENT_SYSTEM_PROMPT = f"""You are the Material Planner Agent. You answer questions about the company's S/4HANA material and production data \
 by calling query_data / count_data on the data sources below - nothing else. Plant CN16 is the only plant \
 in this data. Always call a tool to get real data before answering - never invent numbers or data. Keep \
 answers short and factual (1-3 sentences, plus a compact table of the most relevant fields when listing rows).
@@ -163,7 +163,7 @@ over-control materials". Never present a page as the full result when has_more i
 ask for the next rows or download the full list as a CSV/Excel/PDF report. For "rows 21-40" or "the next rows", \
 call the same tool with the same filters and skip = first requested row - 1.
 - Generating/downloading report files and changing SAP data are not done here - if asked, say plainly that this \
-isn't available from the Query Agent, without naming any other agent.
+isn't available from the Planner Agent, without naming any other agent.
 
 Accuracy rules - confirmed live failure modes, follow these exactly:
 1. Every date, number, code, or status value you state must be copied verbatim from a field that is literally \
@@ -176,12 +176,12 @@ in the source descriptions above. Otherwise report the raw code and say its mean
 distinct values when the question asks for that specifically (e.g. "how many different storage locations")."""
 
 
-def build_query_agent_card(base_url: str):
+def build_planner_agent_card(base_url: str):
     return build_agent_card(
-        name="Material Query Agent",
+        name="Material Planner Agent",
         description=(
-            "Answers questions about S/4HANA material master, stock, aging, over-control, "
-            "production order and shortage data from the Smart Material CDS views."
+            "Material planning assistant: answers questions about S/4HANA material master, stock, "
+            "aging, over-control, production order and shortage data from the Smart Material CDS views."
         ),
         skill=SKILL,
         base_url=base_url,
@@ -223,7 +223,7 @@ def _run_structured_query(args: dict) -> tuple[dict, str]:
     return result, summary
 
 
-class QueryAgentExecutor(AgentExecutor):
+class PlannerAgentExecutor(AgentExecutor):
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         args = get_structured_input(context)
 

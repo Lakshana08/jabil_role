@@ -2,17 +2,19 @@ schema_version: 3.28.0
 metadata:
   namespace: joule.ext
   name: smart_material_capability
-  version: 1.0.12
+  version: 1.0.13
   display_name: Smart Material AI
   description: >-
-    Query the Smart Material CDS views in S/4HANA - material master, stock,
-    aged inventory, over-control, production orders and shortages; create
-    and update material masters and production orders; and generate
-    downloadable reports of any of this data, via A2A agents.
+    Material planning on live S/4HANA via A2A agents: the Material Planner
+    agent answers questions from the Smart Material CDS views (material
+    master, stock, aged inventory, over-control, production orders and
+    shortages); the Action agent creates and updates material masters and
+    production orders; the Report agent generates downloadable reports of
+    any of this data.
 
 system_aliases:
-  SMART_MATERIAL_QUERY:
-    destination: SMART_MATERIAL_QUERY
+  SMART_MATERIAL_PLANNER:
+    destination: SMART_MATERIAL_PLANNER
   SMART_MATERIAL_ACTION:
     destination: SMART_MATERIAL_ACTION
   SMART_MATERIAL_REPORT:

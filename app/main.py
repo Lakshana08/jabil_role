@@ -7,14 +7,17 @@ Each agent is a separate A2A server (its own AgentCard/discovery endpoint,
 its own JSON-RPC endpoint) mounted at its own path prefix within this one
 deployable app:
 
-  /a2a/query   -> Material Query Agent   -> /.well-known/agent-card.json, /
+  /a2a/planner -> Material Planner Agent -> /.well-known/agent-card.json, /
   /a2a/action  -> Material Action Agent  -> /.well-known/agent-card.json, /
   /a2a/report  -> Material Report Agent  -> /.well-known/agent-card.json, /
   /a2a/assistant -> Smart Material Assistant (router + confirm-before-change, used by teams_bot/)
 
 so a caller (e.g. a Joule Studio A2A code-based agent registration) sees
 distinct agents at
-http://<host>/a2a/query/.well-known/agent-card.json, etc.
+http://<host>/a2a/planner/.well-known/agent-card.json, etc.
+
+/a2a/query is kept as an alias of /a2a/planner (the agent's former name), so
+existing callers such as the Joule SMART_MATERIAL_QUERY destination keep working.
 """
 
 import asyncio
@@ -42,7 +45,7 @@ from starlette.routing import Route
 from app.a2a_agents.action_agent import ActionAgentExecutor, build_action_agent_card
 from app.a2a_agents.assistant_agent import AssistantAgentExecutor, build_assistant_agent_card
 from app.a2a_agents.common import BoundedTaskStore
-from app.a2a_agents.query_agent import QueryAgentExecutor, build_query_agent_card
+from app.a2a_agents.planner_agent import PlannerAgentExecutor, build_planner_agent_card
 from app.a2a_agents.report_agent import ReportAgentExecutor, build_report_agent_card
 from app.core.config import get_settings
 from app.core.ias_auth import ias_auth_middleware
@@ -50,12 +53,15 @@ from app.core.web_login import router as web_login_router
 from app.routers.reports import router as reports_router
 
 _AGENTS = {
-    "query": (build_query_agent_card, QueryAgentExecutor),
+    "planner": (build_planner_agent_card, PlannerAgentExecutor),
     "action": (build_action_agent_card, ActionAgentExecutor),
     "report": (build_report_agent_card, ReportAgentExecutor),
     # Router for chat channels without routing of their own (Teams bot); changes need confirmation.
     "assistant": (build_assistant_agent_card, AssistantAgentExecutor),
 }
+
+# Former path -> current agent. Served by the same agent app and handler.
+_ALIASES = {"query": "planner"}
 
 
 def _build_agent_app(path_segment: str, build_card, executor_cls) -> tuple[FastAPI, DefaultRequestHandler]:
@@ -137,8 +143,12 @@ def create_app() -> FastAPI:
     # IAS sign-in for the web page's chat (/auth/login, /auth/callback, /auth/me, /auth/logout).
     app.include_router(web_login_router)
 
+    built = {}
     for path_segment, (build_card, executor_cls) in _AGENTS.items():
-        agent_app, handler = _build_agent_app(path_segment, build_card, executor_cls)
+        built[path_segment] = _build_agent_app(path_segment, build_card, executor_cls)
+    segments = list(_AGENTS) + list(_ALIASES)
+    for path_segment in segments:
+        agent_app, handler = built[_ALIASES.get(path_segment, path_segment)]
         app.mount(f"/a2a/{path_segment}", agent_app)
         # Mounting means a bare POST to /a2a/<segment> (no trailing slash) 307-
         # redirects to /a2a/<segment>/ - some A2A clients (e.g. Joule) don't
