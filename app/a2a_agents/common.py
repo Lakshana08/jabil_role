@@ -36,7 +36,7 @@ requested_skip: ContextVar[int | None] = ContextVar("requested_skip", default=No
 keep_markdown_tables: ContextVar[bool] = ContextVar("keep_markdown_tables", default=False)
 
 # "Generate a production order report at plant 1710 in Excel format" - the texts our CSV / Excel /
-# PDF buttons send. Joule sometimes keeps such a click in the Query (or Status) scenario; those
+# PDF buttons send. Joule sometimes keeps such a click in the Planner scenario; those
 # agents then hand it to the Report agent instead of refusing.
 REPORT_REQUEST_RE = re.compile(r"^\s*generate\s+an?\b.*\breport\b", re.IGNORECASE)
 

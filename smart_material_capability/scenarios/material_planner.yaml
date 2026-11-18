@@ -1,6 +1,7 @@
 description: >-
-  Looks up and counts S/4HANA material and production data from the Smart
-  Material CDS views: material master, MRP / valuation / storage location /
+  Material Planner: answers material planning questions by looking up and
+  counting S/4HANA material and production data from the Smart Material CDS
+  views: material master, MRP / valuation / storage location /
   BOM data, stock and inventory value, aged inventory (aging days), over-control
   / over-issued, non-controlled and available-to-issue material, putaway-pending
   and -S (dummy) materials, work-order components, 14C component issuance,
@@ -16,5 +17,5 @@ description: >-
   "how many non-controlled materials are there?", "show the BOM of material
   PBC2731181A0B", "which orders are excluded with NMVT status?".
 target:
-  name: querymaterialfunction
+  name: materialplannerfunction
   type: function

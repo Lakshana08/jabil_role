@@ -13,7 +13,7 @@ again afterwards.
 
 Examples (from the project root):
 
-  # 1. Local, structured (no AI Core) - Query Agent count via S/4
+  # 1. Local, structured (no AI Core) - Planner Agent count via S/4
   .venv\\Scripts\\python.exe tools\\load_test.py --agent query --structured --users 50 --requests 500
 
   # 2. Local, real free-text path through AI Core + S/4
@@ -39,13 +39,13 @@ from urllib.parse import urlparse
 import httpx
 
 DEFAULT_QUESTIONS = {
-    "query": ["How many production orders are there?", "How many product masters are there in total?"],
+    "planner": ["How many production orders are there?", "How many product masters are there in total?"],
     "report": ["Give me a CSV of production orders for plant 1010"],
     "action": [],  # deliberately empty - load-testing writes would change real S/4 data
 }
 
 DEFAULT_STRUCTURED = {
-    "query": [{"query_type": "production_order", "count_only": True}],
+    "planner": [{"query_type": "production_order", "count_only": True}],
 }
 
 BUSY_MARKER = "handling a lot of requests"
@@ -144,7 +144,7 @@ async def main() -> None:
     # 127.0.0.1, not "localhost": on Windows localhost resolves to IPv6 ::1
     # first, while uvicorn listens on IPv4 127.0.0.1 only.
     parser.add_argument("--url", default="http://127.0.0.1:8000", help="App base URL")
-    parser.add_argument("--agent", default="query", choices=sorted(DEFAULT_QUESTIONS))
+    parser.add_argument("--agent", default="planner", choices=sorted(DEFAULT_QUESTIONS))
     parser.add_argument("--users", type=int, default=20, help="Requests in flight at the same time")
     parser.add_argument("--requests", type=int, default=100, help="Total requests to send")
     parser.add_argument("--question", action="append", help="Free-text question (repeatable)")

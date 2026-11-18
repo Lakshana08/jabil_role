@@ -1,7 +1,7 @@
 action_groups:
   - actions:
       - type: agent-request
-        system_alias: SMART_MATERIAL_QUERY
+        system_alias: SMART_MATERIAL_PLANNER
         agent_type: remote
         result_variable: agentResult
       # agentResult.body is already the unwrapped Task (no extra .result
@@ -20,7 +20,7 @@ action_groups:
         message:
           type: text
           content: "<? replyText ?>"
-      # query_agent.py's _add_report_prompts() pre-computes the exact 3
+      # planner_agent.py's _add_report_prompts() pre-computes the exact 3
       # button prompts (report_prompt_csv/excel/pdf) as plain strings on
       # the Python side - confirmed live that this Joule SpEL engine cannot
       # reliably evaluate nested branching logic (every attempt at deriving
