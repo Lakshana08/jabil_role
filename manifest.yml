@@ -1,5 +1,7 @@
+# Backend app: the A2A agents, IAS sign-in and report downloads. The web page
+# is a separate app - frontend/manifest.yml (cf push -f frontend/manifest.yml).
 applications:
-  - name: smart-material-ai
+  - name: smart-material-ai-role
     # 2 worker processes, each loading LangChain/openpyxl/reportlab - 256M
     # left no headroom even for one under load. 2 workers means one crashing
     # or busy process doesn't take the whole app down; reports are stored on
@@ -21,6 +23,8 @@ applications:
       AICORE_CLIENT_ID: "sb-42a29a03-b2f4-47de-9a41-e0936be9aaf5!b256749|aicore!b164"
       AICORE_CLIENT_SECRET: "b5e6caee-15aa-493a-a6ac-1fef0ab6e9fe$Satg7UGYPLsz5YYeXefHpbwTfEqqCkQEbasMDPGHAgU="
       APP_PUBLIC_URL: https://smart-material-ai.cfapps.us10-001.hana.ondemand.com
+      # Frontend app's route (frontend/manifest.yml) - used for the IAS sign-in redirect.
+      WEB_PUBLIC_URL: https://smart-material-ai-role-ui.cfapps.us10-001.hana.ondemand.com
 
     services:
       - smart-material-ai-destination

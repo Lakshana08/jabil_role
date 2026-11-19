@@ -1251,8 +1251,8 @@
     if (el) el.remove();
   }
 
-  // Same-origin request to our own agent - no CORS issue, since this page
-  // is served by the same FastAPI app that hosts /a2a/*.
+  // Same-origin request to our own agent - no CORS issue: the frontend app
+  // passes /a2a/* through to the backend (frontend/nginx.conf).
   // textOverride/agentOverride: used by "Show next 20" to resend a page
   // prompt to the same agent that produced the result.
   async function sendChat(textOverride, agentOverride) {

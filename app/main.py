@@ -24,6 +24,7 @@ import asyncio
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -158,13 +159,13 @@ def create_app() -> FastAPI:
         bare_route = create_jsonrpc_routes(handler, rpc_url=f"/a2a/{path_segment}", enable_v0_3_compat=True)[0]
         app.routes.append(Route(bare_route.path, endpoint=bare_route.endpoint, methods=["POST"]))
 
-    # Frontend UI (frontend/public/index.html), kept in its own top-level
-    # folder separate from the agent code in app/ - only frontend/public/ is
-    # mounted (not all of frontend/), so nothing else in that folder is
-    # served as a static file. Registered last: Starlette matches mounts in
-    # registration order, and a root-path Mount registered earlier would
-    # swallow /health, /a2a/*, etc.
-    app.mount("/", StaticFiles(directory="frontend/public", html=True), name="frontend")
+    # Frontend UI (frontend/public/index.html). On Cloud Foundry it is its own
+    # app (frontend/manifest.yml) and frontend/ is left out of this app's
+    # upload (.cfignore), so this only serves the page for local development.
+    # Registered last: Starlette matches mounts in registration order, and a
+    # root-path Mount registered earlier would swallow /health, /a2a/*, etc.
+    if Path("frontend/public").is_dir():
+        app.mount("/", StaticFiles(directory="frontend/public", html=True), name="frontend")
 
     return app
 
