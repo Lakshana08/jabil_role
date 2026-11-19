@@ -19,8 +19,3 @@ system_aliases:
     destination: SMART_MATERIAL_ACTION
   SMART_MATERIAL_REPORT:
     destination: SMART_MATERIAL_REPORT
-
-
-
-
-

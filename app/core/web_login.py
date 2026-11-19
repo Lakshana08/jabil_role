@@ -39,12 +39,17 @@ def _client_id() -> str:
     return settings.web_login_client_id.strip() or settings.ias_audience.split(",")[0].strip()
 
 
+def _web_url() -> str:
+    settings = get_settings()
+    return (settings.web_public_url.strip() or settings.app_public_url).rstrip("/")
+
+
 def _redirect_uri() -> str:
-    return f"{get_settings().app_public_url.rstrip('/')}/auth/callback"
+    return f"{_web_url()}/auth/callback"
 
 
 def _secure_cookies() -> bool:
-    return get_settings().app_public_url.startswith("https://")
+    return _web_url().startswith("https://")
 
 
 def _pkce_challenge(verifier: str) -> str:

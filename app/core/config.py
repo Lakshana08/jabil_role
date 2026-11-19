@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     # Base URL this app is reachable at - used in AgentCard URLs and report links.
     app_public_url: str = "http://localhost:8000"
 
+    # Base URL of the frontend app (frontend/manifest.yml) that users open in the
+    # browser. It proxies /auth/* here, so the IAS sign-in redirect URI and the
+    # session cookie belong to it. Empty = same as app_public_url (local dev,
+    # where this app serves the page itself).
+    web_public_url: str = ""
+
     report_download_ttl_seconds: int = 60 * 15
 
     # SAP AI Core - direct Foundation Model access (app/services/ai_core.py),
@@ -68,7 +74,7 @@ class Settings(BaseSettings):
     # (OpenID Connect, authorization-code flow) and get a signed session cookie that the
     # A2A guard accepts in place of a token. Active only when IAS auth is on and both
     # secrets below are set. The IAS application must list
-    # <app_public_url>/auth/callback as a redirect URI.
+    # <web_public_url>/auth/callback as a redirect URI.
     web_login_client_id: str = ""  # empty = first value of ias_audience
     web_login_client_secret: str = ""
     web_session_secret: str = ""  # random string, at least 32 characters; signs the session cookie
