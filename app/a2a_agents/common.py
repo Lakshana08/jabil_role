@@ -1,4 +1,4 @@
-"""Shared helpers for the three A2A agent executors.
+"""Shared helpers for the A2A agent executors (Planner and Report).
 
 Input contract: if the caller sends a JSON DataPart matching the
 capability's parameter shape (e.g. a Joule Studio skill invocation with
@@ -28,16 +28,8 @@ from a2a.utils.constants import PROTOCOL_VERSION_CURRENT, TransportProtocol
 # row arithmetic. LangChain copies the context into the tool thread.
 requested_skip: ContextVar[int | None] = ContextVar("requested_skip", default=None)
 
-# True while the Assistant Agent (Teams) is answering: the Teams bot turns
-# Markdown tables into real Adaptive Card tables, so they are kept. Every other
-# caller (Joule, web UI) shows the text as-is, where a Markdown table appears as
-# raw "| a | b |" lines - so for them emit_response rewrites tables into labelled
-# plain text (see tables_to_text).
-keep_markdown_tables: ContextVar[bool] = ContextVar("keep_markdown_tables", default=False)
-
-# "Generate a production order report at plant 1710 in Excel format" - the texts our CSV / Excel /
-# PDF buttons send. Joule sometimes keeps such a click in the Planner scenario; those
-# agents then hand it to the Report agent instead of refusing.
+# "Generate an aged inventory report where AgingDays > 90 in CSV format" - a report request.
+# The Planner agent answers these with a pointer to the Report agent instead of handling them.
 REPORT_REQUEST_RE = re.compile(r"^\s*generate\s+an?\b.*\breport\b", re.IGNORECASE)
 
 _TABLE_LINE = re.compile(r"^\s*\|.*\|\s*$")
@@ -145,21 +137,6 @@ def get_structured_input(context: RequestContext) -> dict[str, Any] | None:
     return None
 
 
-def requester_from(context: RequestContext) -> dict[str, Any] | None:
-    """The asking user, if the caller sent one in the message metadata as
-    {"requested_by": {"user_key", "name", "email"}} - the Teams bot does, so a
-    prepared SAP change can only be confirmed by the same user. Joule doesn't."""
-    metadata = context.message.metadata if context.message else None
-    if not metadata:
-        return None
-    if not isinstance(metadata, dict):
-        from google.protobuf.json_format import MessageToDict
-
-        metadata = MessageToDict(metadata)
-    requested_by = metadata.get("requested_by")
-    return requested_by if isinstance(requested_by, dict) else None
-
-
 def tool_data(tool_outputs: list[Any]) -> dict[str, Any] | None:
     """Data part for a free-text (LLM) reply. The follow-up prompts are lifted
     to the top level, plus one "followup" flag naming which buttons apply
@@ -206,8 +183,9 @@ async def emit_response(
     background), enqueue one Task that's already in a terminal state -
     no submitted-then-completed transition to race against.
     """
-    if not keep_markdown_tables.get():
-        summary_text = tables_to_text(summary_text)
+    # Joule and the web UI show the text as-is, where a Markdown table would
+    # appear as raw "| a | b |" lines - so tables become labelled plain text.
+    summary_text = tables_to_text(summary_text)
     parts = [new_text_part(summary_text)]
     if data is not None:
         parts.append(new_data_part(data))

@@ -202,25 +202,6 @@ async def _llm_slot():
         slots.release()
 
 
-async def classify(system_prompt: str, user_text: str) -> str | None:
-    """One plain LLM call (no tools) that answers with a single label, e.g.
-    the Assistant Agent picking which agent should answer. Shares the same
-    concurrency slots as run_agent. Returns the lower-cased first word of the
-    answer, or None if AI Core is disabled or the call fails; raises
-    AgentBusyError when no slot frees up in time."""
-    if not get_settings().ai_core_enabled:
-        return None
-    async with _llm_slot():
-        try:
-            llm = await asyncio.to_thread(_build_llm)
-            reply = await llm.ainvoke([("system", system_prompt), ("user", user_text)])
-        except Exception:
-            logger.exception("AI Core classification call failed")
-            return None
-    words = str(reply.content).strip().lower().split()
-    return words[0].strip(".,:;'\"`") if words else None
-
-
 async def _run_agent_turn(
     system_prompt: str, tools: list[Callable[..., Any]], user_text: str
 ) -> tuple[str, list[Any]]:

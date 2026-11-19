@@ -41,7 +41,6 @@ import httpx
 DEFAULT_QUESTIONS = {
     "planner": ["How many production orders are there?", "How many product masters are there in total?"],
     "report": ["Give me a CSV of production orders for plant 1010"],
-    "action": [],  # deliberately empty - load-testing writes would change real S/4 data
 }
 
 DEFAULT_STRUCTURED = {

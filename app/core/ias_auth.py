@@ -1,7 +1,7 @@
 """IAS app-to-app authentication for the A2A agent endpoints.
 
 Follows SAP's "Joule A2A: Secure Code Based Agents with IAS" pattern: a caller
-(Joule via an OAuth2ClientCredentials destination, or the Teams bot) gets a
+(Joule via an OAuth2ClientCredentials destination, or Postman) gets a
 token from the IAS tenant with the client-credentials flow and sends it as
 "Authorization: Bearer <token>". This checks that token before any agent runs:
 
