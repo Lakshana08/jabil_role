@@ -1,21 +1,20 @@
 schema_version: 3.28.0
 metadata:
   namespace: joule.ext
-  name: smart_material_capability
-  version: 1.0.13
-  display_name: Smart Material AI
+  name: jabil_material_planner
+  version: 1.0.14
+  display_name: Jabil Material Planner
   description: >-
     Material planning on live S/4HANA via A2A agents: the Material Planner
     agent answers questions from the Smart Material CDS views (material
     master, stock, aged inventory, over-control, production orders and
-    shortages); the Action agent creates and updates material masters and
-    production orders; the Report agent generates downloadable reports of
-    any of this data.
+    shortages); the Report agent generates downloadable reports of any of
+    this data. Read-only - no SAP data is changed.
 
 system_aliases:
+  # BTP destinations (subaccount Gen-AI), both pointing at the backend app
+  # https://smart-material-ai-role.cfapps.us10-001.hana.ondemand.com
   SMART_MATERIAL_PLANNER:
-    destination: SMART_MATERIAL_PLANNER
-  SMART_MATERIAL_ACTION:
-    destination: SMART_MATERIAL_ACTION
+    destination: Planner_Role   # .../a2a/planner
   SMART_MATERIAL_REPORT:
-    destination: SMART_MATERIAL_REPORT
+    destination: Report_Role    # .../a2a/report

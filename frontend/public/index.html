@@ -603,10 +603,6 @@
           <span class="nav-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg></span>
           Report
         </a>
-        <a class="nav-item" href="#panel-action">
-          <span class="nav-icon coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
-          Action
-        </a>
       </div>
 
       <div class="nav-group">
@@ -811,30 +807,6 @@
           </div>
         </div>
 
-        <div class="panel" id="panel-action">
-          <div class="panel-head">
-            <h3>Action</h3>
-            <p>Change material masters and production orders - always confirmed before anything is saved.</p>
-          </div>
-          <div class="panel-body">
-            <div class="attn-item"><div>
-              <div class="attn-mat">Update the gross weight of material ACEP23701 to 0.05 KG</div>
-              <div class="attn-meta">MM02</div>
-              <button class="discuss-btn" data-agent="action" data-q="Update the gross weight of material ACEP23701 to 0.05 KG">Ask in chat →</button>
-            </div></div>
-            <div class="attn-item"><div>
-              <div class="attn-mat">Change the English description of material ACEP23701 to EPE cloth 390x290x0.5mm</div>
-              <div class="attn-meta">MM02</div>
-              <button class="discuss-btn" data-agent="action" data-q="Change the English description of material ACEP23701 to EPE cloth 390x290x0.5mm">Ask in chat →</button>
-            </div></div>
-            <div class="attn-item"><div>
-              <div class="attn-mat">Update the quantity of production order 121060001 to 8000</div>
-              <div class="attn-meta">CO02</div>
-              <button class="discuss-btn" data-agent="action" data-q="Update the quantity of production order 121060001 to 8000">Ask in chat →</button>
-            </div></div>
-          </div>
-        </div>
-
       </div>
      </div>
     </main>
@@ -862,7 +834,6 @@
       </div>
       <div class="agent-tabs" id="agent-tabs">
         <div class="agent-tab active" data-agent="planner">Planner</div>
-        <div class="agent-tab" data-agent="action">Action</div>
         <div class="agent-tab" data-agent="report">Report</div>
       </div>
     </div>
@@ -918,7 +889,7 @@
     localStorage.setItem("theme", next);
   }
 
-  const AGENT_LABELS = { planner: "Planner Agent", action: "Action Agent", report: "Report Agent" };
+  const AGENT_LABELS = { planner: "Planner Agent", report: "Report Agent" };
   let currentAgent = "planner";
 
   const ORB_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c.6 3.2 1.2 5.6 2.4 6.8S17.8 11.4 21 12c-3.2.6-5.6 1.2-6.8 2.4S12.6 17.8 12 21c-.6-3.2-1.2-5.6-2.4-6.8S6.2 12.6 3 12c3.2-.6 5.6-1.2 6.8-2.4S11.4 6.2 12 3z"/></svg>';
@@ -950,7 +921,7 @@
     signinBanner.hidden = false;
     document.getElementById("signin-text").textContent = loginEnabled
       ? "Sign in with your company account to chat with the agents."
-      : "The agents are protected and web sign-in is not set up yet. Please use Joule or Teams.";
+      : "The agents are protected and web sign-in is not set up yet. Please use Joule.";
     document.getElementById("signin-btn").hidden = !loginEnabled;
     chatInput.disabled = true;
     sendBtn.disabled = true;
@@ -1195,25 +1166,6 @@
         sendChat(nextPrompt, sourceAgent);
       });
       col.appendChild(nextBtn);
-    }
-
-    // SAP changes are only prepared - nothing changes until Confirm, which sends back the
-    // change's one-time code ("Confirm change CHG-7F3K2Q"), same as in Joule and Teams.
-    if (role === "assistant" && dataObj && dataObj.confirm_prompt) {
-      const decision = document.createElement("div");
-      decision.className = "report-actions";
-      [["Confirm", dataObj.confirm_prompt], ["Cancel", dataObj.cancel_prompt]].forEach(([label, prompt]) => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "report-btn";
-        btn.textContent = label;
-        btn.addEventListener("click", () => {
-          decision.remove();
-          sendChat(prompt, sourceAgent);
-        });
-        decision.appendChild(btn);
-      });
-      col.appendChild(decision);
     }
 
     if (dataObj) {

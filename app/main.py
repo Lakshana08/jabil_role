@@ -1,23 +1,23 @@
 # Run: .venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
-"""FastAPI entrypoint that hosts three independent A2A agents - querying,
-acting on, and reporting on live S/4HANA material data - plus the assistant
-router and a plain REST route for downloading generated report files.
+"""FastAPI entrypoint that hosts two independent A2A agents - the Material
+Planner (answers questions) and the Report agent (CSV/Excel/PDF files) on live
+S/4HANA material data - plus a plain REST route for downloading generated
+report files.
 
 Each agent is a separate A2A server (its own AgentCard/discovery endpoint,
 its own JSON-RPC endpoint) mounted at its own path prefix within this one
 deployable app:
 
   /a2a/planner -> Material Planner Agent -> /.well-known/agent-card.json, /
-  /a2a/action  -> Material Action Agent  -> /.well-known/agent-card.json, /
   /a2a/report  -> Material Report Agent  -> /.well-known/agent-card.json, /
-  /a2a/assistant -> Smart Material Assistant (router + confirm-before-change, used by teams_bot/)
 
 so a caller (e.g. a Joule Studio A2A code-based agent registration) sees
 distinct agents at
 http://<host>/a2a/planner/.well-known/agent-card.json, etc.
 
 /a2a/query is kept as an alias of /a2a/planner (the agent's former name), so
-existing callers such as the Joule SMART_MATERIAL_QUERY destination keep working.
+older callers keep working. Joule reaches the agents through the BTP
+destinations Planner_Role (/a2a/planner) and Report_Role (/a2a/report).
 """
 
 import asyncio
@@ -43,8 +43,6 @@ from a2a.server.routes import add_a2a_routes_to_fastapi, create_agent_card_route
 from a2a.utils.constants import DEFAULT_RPC_URL
 from starlette.routing import Route
 
-from app.a2a_agents.action_agent import ActionAgentExecutor, build_action_agent_card
-from app.a2a_agents.assistant_agent import AssistantAgentExecutor, build_assistant_agent_card
 from app.a2a_agents.common import BoundedTaskStore
 from app.a2a_agents.planner_agent import PlannerAgentExecutor, build_planner_agent_card
 from app.a2a_agents.report_agent import ReportAgentExecutor, build_report_agent_card
@@ -55,10 +53,7 @@ from app.routers.reports import router as reports_router
 
 _AGENTS = {
     "planner": (build_planner_agent_card, PlannerAgentExecutor),
-    "action": (build_action_agent_card, ActionAgentExecutor),
     "report": (build_report_agent_card, ReportAgentExecutor),
-    # Router for chat channels without routing of their own (Teams bot); changes need confirmation.
-    "assistant": (build_assistant_agent_card, AssistantAgentExecutor),
 }
 
 # Former path -> current agent. Served by the same agent app and handler.

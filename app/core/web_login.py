@@ -8,8 +8,8 @@
   /auth/logout    -> clears the session
 
 The A2A guard (app/core/ias_auth.py) accepts that session cookie in place of a Bearer token
-for calls from this page, so the page never sees a client secret or token. Joule, the Teams
-bot and Postman keep using Bearer tokens as before.
+for calls from this page, so the page never sees a client secret or token. Joule and
+Postman keep using Bearer tokens as before.
 """
 
 import asyncio
