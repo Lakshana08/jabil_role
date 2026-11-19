@@ -7,6 +7,7 @@ from a2a.server.events import EventQueue
 from a2a.types import AgentSkill
 
 from app.a2a_agents.common import build_agent_card, emit_response, get_structured_input
+from app.core.config import get_settings
 from app.core_capabilities._s4_apis import BY_NAME, FILTER_ALIASES, FILTER_NAMES, describe_scope, source_catalog
 from app.core_capabilities.report import generate_material_report
 from app.services.ai_core import run_agent
@@ -79,7 +80,8 @@ data sources, and pass the filters / conditions / sort the request asks for (non
 
 Filter names: {", ".join(FILTER_NAMES)}.
 
-Choosing the source: "aged"/"aging" -> aged_inventory (aged = AgingDays > 14); "over-issued"/"over-control" -> \
+Choosing the source: "aged"/"aging" -> aged_inventory (aged = AgingDays > {get_settings().aged_threshold_days}, \
+used when the request gives no number of days); "over-issued"/"over-control" -> \
 over_control; "non-controlled" -> wip_issuable with status NC; "missing parts"/order shortage -> \
 work_order_shortage; short components -> component_shortage (really short = ShortageQty > 0); "stock" -> \
 material_stock; stock value -> inventory; BOM -> material_bom; "14C" -> component_issuance; NMVT / excluded \
