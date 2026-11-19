@@ -39,6 +39,11 @@ class Settings(BaseSettings):
 
     report_download_ttl_seconds: int = 60 * 15
 
+    # Material counts as "aged" when AgingDays is above this. Used by the
+    # Planner and Report agents; change it with the AGED_THRESHOLD_DAYS env var
+    # (cf set-env + cf restart) - no code change needed.
+    aged_threshold_days: int = 14
+
     # SAP AI Core - direct Foundation Model access (app/services/ai_core.py),
     # used by all 4 agents to (a) parse free-text task input into parameters
     # and (b) phrase natural-language response summaries. When False, agents
