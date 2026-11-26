@@ -1,7 +1,7 @@
 action_groups:
   - actions:
       - type: agent-request
-        system_alias: SMART_MATERIAL_PLANNER
+        system_alias: PLANNER_ROLE
         agent_type: remote
         result_variable: agentResult
       # agentResult.body is already the unwrapped Task (no extra .result

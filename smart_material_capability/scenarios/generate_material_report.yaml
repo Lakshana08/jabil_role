@@ -15,3 +15,14 @@ description: >-
 target:
   name: generatematerialreport
   type: function
+# Planner role only: Joule offers this scenario only to users in the IAS group
+# "Planner" (case-sensitive), read from the user's IAS token. Other users never
+# get it - Joule just doesn't pick it. More roles later: add their group under values.
+visibility_condition:
+  objects:
+    - type: ias_attributes
+      attributes:
+        - attribute: groups
+          match: ANY
+          values:
+            - Planner
