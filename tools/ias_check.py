@@ -10,7 +10,7 @@ so it never appears on screen or in shell history.
   .venv\\Scripts\\python.exe tools\\ias_check.py
 
   # test the deployed app (only after IAS_AUTH_ENABLED=true there)
-  .venv\\Scripts\\python.exe tools\\ias_check.py --url https://smart-material-ai.cfapps.us10-001.hana.ondemand.com
+  .venv\\Scripts\\python.exe tools\\ias_check.py --url https://smart-material-ai-role.cfapps.us10-001.hana.ondemand.com
 """
 
 import argparse

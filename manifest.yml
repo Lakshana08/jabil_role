@@ -1,5 +1,4 @@
-# Backend app: the A2A agents, IAS sign-in and report downloads. The web page
-# is a separate app - frontend/manifest.yml (cf push -f frontend/manifest.yml).
+# Backend app: the A2A agents (called by Joule) and report downloads.
 applications:
   - name: smart-material-ai-role
     # 2 worker processes, each loading LangChain/openpyxl/reportlab - 256M
@@ -27,8 +26,6 @@ applications:
       # This app's own route - used in agent-card URLs and report download links.
       # Same host as the Joule destinations Planner_Role / Report_Role.
       APP_PUBLIC_URL: https://smart-material-ai-role.cfapps.us10-001.hana.ondemand.com
-      # Frontend app's route (frontend/manifest.yml) - used for the IAS sign-in redirect.
-      WEB_PUBLIC_URL: https://smart-material-ai-role-ui.cfapps.us10-001.hana.ondemand.com
 
     services:
       - smart-material-ai-destination

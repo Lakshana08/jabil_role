@@ -1,21 +1,28 @@
 description: >-
-  Material Planner: answers material planning questions by looking up and
-  counting S/4HANA material and production data from the Smart Material CDS
-  views: material master, MRP / valuation / storage location /
-  BOM data, stock and inventory value, aged inventory (aging days), over-control
-  / over-issued, non-controlled and available-to-issue material, putaway-pending
-  and -S (dummy) materials, work-order components, 14C component issuance,
-  COOIS / NMVT order status, production orders with their components,
-  operations and statuses, machine-head material, and work orders with missing
-  parts or component shortages. Use for any question about this data, including
-  "how many ..." and "next rows" follow-ups ("..., rows 21-40"). NOT for
-  generating, exporting or downloading a report or file (CSV, Excel, PDF): any
-  "Generate a ... report ..." message belongs to the report scenario. NOT for
-  creating or changing SAP data. Example phrasings: "any over-issued materials
-  in storage location A301?", "show the 10 oldest aged materials", "which work
-  orders have missing parts?", "what's short for production order 121060001?",
-  "how many non-controlled materials are there?", "show the BOM of material
-  PBC2731181A0B", "which orders are excluded with NMVT status?".
+  Material Planner: looks up and counts S/4HANA material and production data -
+  material master, MRP / valuation / storage location / BOM data, stock and
+  inventory value, aged inventory, over-control / over-issued WIP,
+  non-controlled and available-to-issue material, putaway-pending and -S
+  materials, work-order components, 14C issuance, COOIS / NMVT order status,
+  production orders, and work orders with missing parts or component
+  shortages. Use for any question about this data, including "how many ..."
+  and "next rows" follow-ups ("..., rows 21-40"). NOT for generating or
+  downloading a report or file (CSV, Excel, PDF): any "Generate a ... report"
+  message belongs to the report scenario. Examples: "any over-issued materials
+  in storage location A301?", "show the 10 oldest aged materials", "what is
+  short for work order 121060001, and what is aged?", "which work orders have
+  missing parts?", "show the BOM of material PBC2731181A0B".
 target:
   name: materialplannerfunction
   type: function
+# Planner role only: Joule offers this scenario only to users in the IAS group
+# "Planner" (case-sensitive), read from the user's IAS token. Other users never
+# get it - Joule just doesn't pick it. More roles later: add their group under values.
+visibility_condition:
+  objects:
+    - type: ias_attributes
+      attributes:
+        - attribute: groups
+          match: ANY
+          values:
+            - Planner

@@ -2,7 +2,7 @@ schema_version: 3.28.0
 metadata:
   namespace: joule.ext
   name: jabil_material_planner
-  version: 1.0.14
+  version: 1.0.13
   display_name: Jabil Material Planner
   description: >-
     Material planning on live S/4HANA via A2A agents: the Material Planner
@@ -14,7 +14,7 @@ metadata:
 system_aliases:
   # BTP destinations (subaccount Gen-AI), both pointing at the backend app
   # https://smart-material-ai-role.cfapps.us10-001.hana.ondemand.com
-  SMART_MATERIAL_PLANNER:
+  PLANNER_ROLE:
     destination: Planner_Role   # .../a2a/planner
-  SMART_MATERIAL_REPORT:
+  REPORT_ROLE:
     destination: Report_Role    # .../a2a/report

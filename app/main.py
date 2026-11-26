@@ -24,11 +24,9 @@ import asyncio
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
 
 logger = logging.getLogger("a2a_wire_debug")
 
@@ -48,7 +46,6 @@ from app.a2a_agents.planner_agent import PlannerAgentExecutor, build_planner_age
 from app.a2a_agents.report_agent import ReportAgentExecutor, build_report_agent_card
 from app.core.config import get_settings
 from app.core.ias_auth import ias_auth_middleware
-from app.core.web_login import router as web_login_router
 from app.routers.reports import router as reports_router
 
 _AGENTS = {
@@ -136,8 +133,6 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     app.include_router(reports_router)
-    # IAS sign-in for the web page's chat (/auth/login, /auth/callback, /auth/me, /auth/logout).
-    app.include_router(web_login_router)
 
     built = {}
     for path_segment, (build_card, executor_cls) in _AGENTS.items():
@@ -153,14 +148,6 @@ def create_app() -> FastAPI:
         # Mount's redirect entirely for that case.
         bare_route = create_jsonrpc_routes(handler, rpc_url=f"/a2a/{path_segment}", enable_v0_3_compat=True)[0]
         app.routes.append(Route(bare_route.path, endpoint=bare_route.endpoint, methods=["POST"]))
-
-    # Frontend UI (frontend/public/index.html). On Cloud Foundry it is its own
-    # app (frontend/manifest.yml) and frontend/ is left out of this app's
-    # upload (.cfignore), so this only serves the page for local development.
-    # Registered last: Starlette matches mounts in registration order, and a
-    # root-path Mount registered earlier would swallow /health, /a2a/*, etc.
-    if Path("frontend/public").is_dir():
-        app.mount("/", StaticFiles(directory="frontend/public", html=True), name="frontend")
 
     return app
 

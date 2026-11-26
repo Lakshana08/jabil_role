@@ -15,9 +15,6 @@ The token identifies the calling *application*, not the end user - S/4 is still
 called with the destination's technical user (Principal Propagation is a
 separate pattern).
 
-The web page's chat has no token: its users sign in with IAS instead (app/core/web_login.py)
-and the signed session cookie is accepted here in place of a Bearer token.
-
 Only JSON-RPC calls (POST /a2a/...) are checked. Agent cards (GET
 .../.well-known/agent-card.json) stay public for A2A discovery, as do /health,
 the report download links and the web UI files. Switched by
@@ -32,7 +29,6 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
-from app.core.web_session import WEB_CLIENT_HEADER, WEB_CLIENT_VALUE, session_user
 
 logger = logging.getLogger(__name__)
 
@@ -111,12 +107,6 @@ async def ias_auth_middleware(request: Request, call_next):
 
     header = request.headers.get("Authorization", "")
     if not header.startswith("Bearer "):
-        # The web page's chat: a user signed in through IAS (app/core/web_login.py) sends
-        # the session cookie instead of a token, plus the page's header against CSRF.
-        user = session_user(request)
-        if user and request.headers.get(WEB_CLIENT_HEADER) == WEB_CLIENT_VALUE:
-            request.state.caller = user.get("email") or user.get("sub")
-            return await call_next(request)
         return JSONResponse(status_code=401, content={"detail": "Missing token"})
     try:
         claims = await asyncio.to_thread(verify_token, header[len("Bearer "):].strip())

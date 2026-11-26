@@ -21,7 +21,7 @@ Examples (from the project root):
       --question "How many production orders are there?"
 
   # 3. Deployed app
-  .venv\\Scripts\\python.exe tools\\load_test.py --url https://smart-material-ai.cfapps.us10-001.hana.ondemand.com \\
+  .venv\\Scripts\\python.exe tools\\load_test.py --url https://smart-material-ai-role.cfapps.us10-001.hana.ondemand.com \\
       --agent query --structured --users 20 --requests 100
 """
 

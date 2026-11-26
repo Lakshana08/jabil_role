@@ -40,7 +40,7 @@ FILTER_NAMES = {
 
 _UNSPLIT_FILTERS = frozenset({"status"})
 
-# Old parameter names still accepted from structured callers (Joule functions, frontend).
+# Old parameter names still accepted from structured callers (Joule functions).
 FILTER_ALIASES = {"product": "material", "material_number": "material", "production_order": "order"}
 
 _NUMERIC_TYPES = {"Edm.Byte", "Edm.SByte", "Edm.Int16", "Edm.Int32", "Edm.Int64", "Edm.Decimal", "Edm.Double", "Edm.Single"}

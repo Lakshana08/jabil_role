@@ -1,7 +1,7 @@
 action_groups:
   - actions:
       - type: agent-request
-        system_alias: SMART_MATERIAL_REPORT
+        system_alias: REPORT_ROLE
         agent_type: remote
         result_variable: agentResult
       # Joule calls via the legacy "message/send" JSON-RPC method with no

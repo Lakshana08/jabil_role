@@ -221,3 +221,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Joule CLI output (compiled .daar files, debug logs) - kept out of the capability folder
+joule_artifacts/
+debug-*.json
